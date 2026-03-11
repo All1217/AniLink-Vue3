@@ -169,12 +169,23 @@ const slide_r_videos = ref<VideoVo[]>(deRVL)
 const videoWall = ref<VideoVo[]>(parVideoList)
 const parEntrance = ref<PopularWork[]>([
   {
-    cover: "https://morton321.oss-cn-hangzhou.aliyuncs.com/%E7%A5%9E%E4%B9%8B%E5%A1%94.png", title: "神之塔 工房战", des: "更新至第12话  · 周一更新",
-    href: 'https://www.bilibili.com/bangumi/play/ep1178228?spm_id_from=333.1007.partition_recommend.content.click'
+    cover: "http://192.168.150.102:9000/avatar/025d6837-5079-4d44-853f-b08bb39d45fa.png",
+    title: "你们的王，回来了！",
+    des: "我独自升级 第二季",
+    href: 'https://www.bilibili.com/bangumi/play/ep1403521'
   },
-  { cover: "https://morton321.oss-cn-hangzhou.aliyuncs.com/%E4%BA%AC%E4%B8%9C%E5%A9%9A%E4%BB%8B%E6%89%80.png", title: "90婚介所2022", des: "找到心仪的TA ", href: 'https://www.bilibili.com/bangumi/play/ss41673?spm_id_from=333.1007.partition_recommend.content.click' },
-  { cover: "https://morton321.oss-cn-hangzhou.aliyuncs.com/%E7%9B%9F%E5%86%9B%E6%95%A2%E6%AD%BB%E9%98%9F.png", title: "【盟军敢死队】 中文版", des: "哔哩哔哩电影", href: 'https://www.bilibili.com/bangumi/play/ep835772?theme=movie&spm_id_from=333.1007.partition_recommend.content.click' },
-  { cover: "https://morton321.oss-cn-hangzhou.aliyuncs.com/%E6%BC%AB%E7%94%BB.png", title: "杀死男主然后成为女魔头 | 当游戏中的角色，窥视到了游戏外的世界", des: "古风 · 更新至请假公告", href: "https://manga.bilibili.com/detail/mc32716?spm_id_from=333.1007.partition_recommend.content.click" }
+  {
+    cover: "http://192.168.150.102:9000/avatar/95227fa9-e3cb-45c1-b5d1-f6c6d1ef07bc.png",
+    title: "备战终末地1.1新版本",
+    des: "籽岷 ",
+    href: 'https://live.bilibili.com/544853'
+  },
+  {
+    cover: "http://192.168.150.102:9000/avatar/fd18e98b-e0f3-4343-8757-9c816be2aea4.png",
+    title: "简·奥斯汀同名小说！傲娇富二代遇到乡绅之女！",
+    des: "傲慢与偏见",
+    href: 'https://www.bilibili.com/bangumi/play/ep741240'
+  }
 ])
 /**
  * @description: 函数&方法

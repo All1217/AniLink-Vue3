@@ -84,15 +84,15 @@ export const deRVL: VideoVo[] = [
 ]
 //轮播图图片列表
 export const slide_picture: SlideImage[] = [
-    { id: 1, href: "https://www.bilibili.com/blackboard/era/hcjvGIlWLJbFJjXY.html?msource=search&spm_id_from=333.337.0.0", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_1.png", style: "#5a769a", title: "@哔哩哔哩公益 官方邀请你，投稿守护小流浪>>" },
-    { id: 2, href: "https://www.bilibili.com/bangumi/play/ep1447160", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_2.png", style: "#808ca5", title: "追踪英国的冰冷杀手" },
-    { id: 3, href: "https://www.bilibili.com/bangumi/play/ss48519?spm_id_from=333.337.0.0", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_3.png", style: "#34292a", title: "有我在，谁敢动秦阳一根手指头" },
-    { id: 4, href: 'https://www.bilibili.com/blackboard/era/U5v708csF3Jqsa6p.html', src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_4.png", style: "#241b11", title: "文明7！启动！！" },
-    { id: 5, href: "https://www.bilibili.com/blackboard/era/u8QNvoAm2GBE9VIG.html?spm_id_from=333.337.0.0", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_5.png", style: "#d79b75", title: "新年新气象，投稿美食视频参与瓜分2.5W贝壳金" },
-    { id: 6, href: "https://www.bilibili.com/video/BV1ykNVeJEPt/?spm_id_from=333.337.search-card.all.click&vd_source=7e1929799f2f0e3945358988a0f7b127", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_6.png", style: "#4c4f6e", title: "到底谁才是反派啊？！" },
-    { id: 7, href: "https://www.bilibili.com/opus/1024864864266354688", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_7.png", style: "#8d7876", title: "是的！我们玩世界之外！" },
-    { id: 8, href: "", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_8.png", style: "#574e25", title: "用“我的世界”打开元宵节？" },
-    { id: 9, href: "https://www.bilibili.com/bangumi/play/ep1438453", src: "https://morton321.oss-cn-hangzhou.aliyuncs.com/slide_9.png", style: "#5a769a", title: "那兔第七季开播！种花之梦成于实干！" },
+    { id: 1, href: "https://live.bilibili.com/55?live_from=81001", src: "http://192.168.150.102:9000/avatar/0686ed2c-ed06-483a-878e-6d8af994caad.png", style: "#817681", title: "正在直播KPL：北京WB vs 重庆狼队！" },
+    { id: 2, href: "https://www.lotuscars.com.cn/forme?utm_0=AbIZRr", src: "http://192.168.150.102:9000/avatar/59bc0302-4934-4805-989a-c3c29e755d8a.png", style: "#23241a", title: "全新莲花For Me预售现已开启" },
+    { id: 3, href: "https://www.bilibili.com/bangumi/play/ep2401916", src: "http://192.168.150.102:9000/avatar/fa4dec61-f95e-4e63-b11a-ca8b7df72112.png", style: "#43536f", title: "魔门之女金小钗惊艳登场！" },
+    { id: 4, href: 'https://www.bilibili.com/bangumi/play/ep3065297', src: "http://192.168.150.102:9000/avatar/83f12999-d6b8-4b6b-8c58-42c204aaef7d.png", style: "#2b2b2f", title: "此对道侣外星来，专收仙界智商税" },
+    { id: 5, href: "https://www.bilibili.com/video/BV1mYPSzmEkV", src: "http://192.168.150.102:9000/avatar/c17d14be-6665-4d15-b416-2c4085586fef.png", style: "#c39686", title: "UP主给OpenClaw做了个龙虾管家" },
+    { id: 6, href: "https://www.bilibili.com/video/BV1uSPxzSEXc/", src: "http://192.168.150.102:9000/avatar/f33b58b5-8c29-483b-8e9b-1d8f5fa63599.png", style: "#1b1616", title: "终于有一款新能源车…拒绝冰箱彩电大沙发了！" },
+    { id: 7, href: "https://www.bilibili.com/bangumi/play/ep2895192", src: "http://192.168.150.102:9000/avatar/590a3333-1a3a-4162-8713-525ae69d90e7.png", style: "#592420", title: "清华理工男开的澡堂真的有点不一样..." },
+    { id: 8, href: "https://www.bilibili.com/blackboard/era/bYlg7HZ1mAGEDb3I.html", src: "http://192.168.150.102:9000/avatar/f1e082df-7c6c-43f0-b1a2-811772cf6434.png", style: "#6e3311", title: "谁是下一个鬼畜新星？" },
+    { id: 9, href: "https://www.bilibili.com/video/BV1CZPdzREGw", src: "http://192.168.150.102:9000/avatar/079cb9c7-6e3d-43d4-ad00-25bfde1c0cba.png", style: "#2d2219", title: "F1传奇|塞纳与普罗斯特：伯牙绝弦" },
 ]
 export const parVideoList: VideoVo[] = [
 ]
