@@ -15,4 +15,3 @@
 - `cd AniLink-Vue3`进入项目根目录
 - 输入`npm install`安装依赖
 - 安装完成后在根目录输入`npm run serve`，当命令行显示网址时打开浏览器，在地址栏输入`http://localhost:8080/`
-
