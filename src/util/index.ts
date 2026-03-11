@@ -227,8 +227,7 @@ export function getTimeRanges(type: number, now?: Date): TimeRange {
 
 //登录账号校验
 export function validateAccount(str: string): boolean {
-    // 检查字符串的长度是否等于 length，并且只包含数字字符
-    return str.length === 9 && /^[0-9]+$/.test(str);
+    return str.length <= 15 && /^[0-9]+$/.test(str);
 }
 //密码校验
 export function validatePass(str: string): boolean {
