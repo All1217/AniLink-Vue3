@@ -102,9 +102,3 @@ export const parVideoList: VideoVo[] = [
 export function getRecVideoList(query: VideoQueryVo) {
     return http.get<PageRes<VideoVo>>('/main/video/home/pageVideo', query)
 };
-/**
- * @description 获取IP地址
- */
-export function getIP() {
-    return http.get<string>('/main/login/public/getIP')
-};

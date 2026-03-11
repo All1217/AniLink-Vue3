@@ -32,13 +32,11 @@ import { DateStringType, Interaction } from '@/api/enums';
 import { getFormatCurTime } from '@/util/index'
 import { useUserStore } from '@/util/userStore';
 import { Danmu, Danmu as MyDanmu, BrowseHistory, Video } from '@/api/Models';
-import { useIPStore } from '@/util/ip';
 
 /**
  * @description: 显式声明事件
  */
 const emit = defineEmits(['get-instance', 'addPlayCount']);
-const ipStore = useIPStore()
 const props = defineProps({
     uid: {
         type: Number,
@@ -132,7 +130,13 @@ watch(() => props.videoInfo.vid, (newVal) => {
 const connectWebsocket = () => {
     if (socket.value) socket.value.close();
     const now = new Date();
-    socket.value = new WebSocket(`ws://${ipStore.ip}:8090/ws/video/${props.videoInfo.vid}/${'' + userStore.userInfo.uid + now.getTime()}`);
+    let tuid = 0;
+    if(userStore.token){
+        tuid = userStore.userInfo.uid;
+    }
+    // socket.value = new WebSocket(`ws://localhost:5051/ws/video?uid=${'' + tuid + now.getTime()}&vid=${props.videoInfo.vid}`);
+    socket.value = new WebSocket(`ws://localhost:8090/ws/video/${props.videoInfo.vid}/${'' + tuid + now.getTime()}`);
+    console.log( 'websocket状态：' +socket.value.readyState)
     socket.value.onmessage = parseMessage
 };
 const sendTestMessage = (text: string) => {

@@ -125,9 +125,7 @@ import { useUserStore } from "@/util/userStore";
 import { removeOneElement, formatStringDate, geneId, getFormatCurTime, timeGap } from '@/util/index';
 import { DateStringType } from "@/api/enums";
 import { useRoute } from "vue-router";
-import { useIPStore } from '@/util/ip';
 
-const ipStore = useIPStore() 
 const route = useRoute();
 const userStore = useUserStore()
 /**
@@ -315,7 +313,8 @@ async function onInsertChatMessage(params: ChatMessage) {
 const socket = ref<null | WebSocket>(null);
 const connectWebsocket = () => {
   if (socket.value) socket.value.close();// 关闭之前的连接（如果存在）
-  socket.value = new WebSocket(`ws://${ipStore.ip}:8090/ws/${userStore.userInfo.uid}`);
+  // socket.value = new WebSocket(`ws://localhost:5051/ws/chat?uid=${'' + userStore.userInfo.uid}`);
+  socket.value = new WebSocket(`ws://localhost:8090/ws/${'' + userStore.userInfo.uid}`);
   // 处理 WebSocket 事件
   socket.value.onopen = () => {
     console.log('WebSocket 连接已打开');

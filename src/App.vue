@@ -102,7 +102,7 @@
         <a class="avatar" v-show="login.isLogin" @mouseenter="switchDialog('user')"
           @click="jumpToUserPage(`/user_page/${userStore.userInfo.uid}`)">
           <img
-            :src="userData.avatar ? userData.avatar : 'https://morton321.oss-cn-hangzhou.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-02-11%20232613.png'"
+            :src="userData.avatar ? userData.avatar : DEFAULT_AVATAR"
             alt="">
         </a>
         <div class="un-login" v-show="!login.isLogin" @click="onLoginBtnClick(true, false)">登录</div>
@@ -386,7 +386,7 @@
           <form class="tab__form" v-show="!login.isReg">
             <div class="form__item flex-row-ac jc-start">
               <div class="form_info">账号</div>
-              <input type="text" autocomplete="on" maxlength="9" oninput="value=value.replace(/\s+/g, '')"
+              <input type="text" autocomplete="on" maxlength="15" oninput="value=value.replace(/\s+/g, '')"
                 placeholder="请输入账号" v-model="login.account"
                 @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') loginPassInput.focus() }">
             </div>
@@ -403,7 +403,7 @@
             <div class="form__item flex-row-ac jc-start">
               <div class="form_info">昵称</div>
               <input type="text" autocomplete="on" maxlength="20" oninput="value=value.replace(/\s+/g, '')"
-                placeholder="请输入用户名" v-model.trim="login.nickname"
+                placeholder="请输入用户名" v-model.trim="login.username"
                 @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') registerPassLogin.focus() }">
             </div>
             <div class="form__separator-line"></div>
@@ -444,6 +444,7 @@ import runp from '@/assets/images/login_right_image.png';
 import { useUserStore } from '@/util/userStore'
 import { validateAccount, validatePass, formatTimeGap, formatCount, removeOneElement } from "./util";
 import { LOGIN_URL } from "./util/config";
+import {DEFAULT_AVATAR} from "@/api/constants"
 
 import {
   partitonList, Partition, defaultUser, onLogin,
@@ -470,7 +471,7 @@ const searchBox = ref<HTMLDivElement | null>(null)
 const login = reactive({
   account: "",
   password: "",
-  nickname: "",
+  username: "",
   dialog: false,
   isLogin: false,//是否已登录
   isPassword: true,
@@ -493,7 +494,7 @@ const show_dialog = reactive({
 //请求
 async function callLogin() {
   if (!validateAccount(login.account)) {
-    ElMessage.error("账号不符合格式，必须是9位数字！")
+    ElMessage.error("账号不符合格式，必须是15位以内纯数字！")
     return;
   }
   if (!validatePass(login.password)) {
@@ -540,7 +541,7 @@ async function callRegister() {
   }
   try {
     const tPass = login.password;
-    const res = await onRegister({ nickname: login.nickname, password: login.password })
+    const res = await onRegister({ nickname: login.username, password: login.password })
     if (res.code == 200) {
       login.account = res.data
       login.password = tPass
@@ -739,7 +740,7 @@ function onLoginBtnClick(showLoginPanel: boolean, showReg: boolean) {
   login.isReg = showReg
   login.account = ""
   login.password = ""
-  login.nickname = ""
+  login.username = ""
 }
 function jumpToUserPage(path: string) {
   if (userStore.token) {

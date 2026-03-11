@@ -150,11 +150,8 @@ import { useRouter } from "vue-router";
 import { partitonList, avaPar } from '@/api/app';
 import { VideoVo, VideoQueryVo } from "@/api/Models";
 import { ParRight, PopularWork } from "@/api/MainWindow/types";
-import { deRVL, getRecVideoList, slide_picture, parVideoList, getIP } from '@/api/MainWindow/index'
+import { deRVL, getRecVideoList, slide_picture, parVideoList } from '@/api/MainWindow/index'
 import { formatTimeGap, formatCount, sliceDateTime, openNewPage } from '@/util/index'
-import { useIPStore } from "@/util/ip";
-
-const ipStore = useIPStore()
 
 var slide_pic = null
 const wallPage = ref<number>(1)
@@ -249,20 +246,10 @@ async function getVideoList(query: VideoQueryVo) {
     console.log(error)
   }
 }
-async function onGetIP() {
-  try {
-    const { data } = await getIP()
-    ipStore.setIP(data)
-    console.log(data);
-  } catch (error) {
-    console.log(error)
-  }
-}
 onMounted(() => {
   slide_pic = setInterval(() => {
     cur_pic.value = cur_pic.value == 8 ? 0 : cur_pic.value + 1;
   }, 5000);
-  onGetIP();
   callGetRecVideoList()
   onGetVideoWall(12)
 })

@@ -116,9 +116,6 @@ export interface UserState {
     token?: string
     sh?: SearchHistory[]
 }
-export interface IP {
-    ip: string
-}
 export interface FavState {
     favList?: Favorite[]
 }
