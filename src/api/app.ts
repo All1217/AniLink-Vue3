@@ -150,6 +150,12 @@ export function getUserInfoByUid() {
     return http.get<User>('/main/info')
 }
 /**
+ * @description token续约
+ */
+export function refreshToken() {
+    return http.get<string>('/main/public/refresh')
+}
+/**
  * @description 注册
  */
 export function onRegister(data: RegisterData) {
