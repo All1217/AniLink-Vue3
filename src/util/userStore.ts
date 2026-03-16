@@ -20,6 +20,7 @@ export const useUserStore = defineStore({
     id: 'main-user',
     state: (): UserState => ({
         token: '',
+        refreshToken: '',
         userInfo: {} as User,
         sh: [] as SearchHistory[]
     }),
@@ -27,6 +28,9 @@ export const useUserStore = defineStore({
         // setToken
         setToken(token: string) {
             this.token = token
+        },
+        setRefreshToken(token: string) {
+            this.refreshToken = token
         },
         // setUserInfo
         setUserInfo(userInfo: User) {

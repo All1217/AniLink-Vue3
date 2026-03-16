@@ -1,10 +1,3 @@
-/*
- * @Author: 朽木白
- * @Date: 2023-02-06 11:02:58
- * @LastEditors: 1547702880@@qq.com
- * @LastEditTime: 2023-03-25 09:55:02
- * @Description: axios请求封装
- */
 import axios from 'axios'
 import type {
   AxiosInstance,
@@ -18,82 +11,13 @@ import { ResultEnum } from '@/api/enums'
 import { ResultData } from '@/api/Models'
 import { LOGIN_URL } from '@/util/config'
 import { RESEETSTORE } from './userStore'
+import { CookieUtil } from '@/util/cookie'
 import router from '@/router'
 
 export const service: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: ResultEnum.TIMEOUT as number,
 })
-/**
- * @description: 请求拦截器
- * @returns {*}
- */
-service.interceptors.request.use(
-  (config) => {
-    const userStore = useUserStore()
-    const token = userStore.token
-    if (token) {
-      config.headers['access-token'] = token
-    }
-    return config
-  },
-  (error: AxiosError) => {
-    ElMessage.error(error.message)
-    return Promise.reject(error)
-  },
-)
-/**
- * @description: 响应拦截器
- * @returns {*}
- */
-service.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const { data } = response
-    // 登陆失效
-    if (ResultEnum.EXPIRE.includes(data.code)) {
-      RESEETSTORE();
-      ElMessage.error(data.message || ResultEnum.ERRMESSAGE)
-      router.replace(LOGIN_URL)
-      ElMessage.error('登录过期，请重新登录！')
-      return Promise.reject(data)
-    }
-
-    if (data.code && data.code !== ResultEnum.SUCCESS) {
-      ElMessage.error(data.message || ResultEnum.ERRMESSAGE)
-      return Promise.reject(data)
-    }
-    return data
-  },
-  (error: AxiosError) => {
-    // 处理 HTTP 网络错误
-    let message = ''
-    // HTTP 状态码
-    const status = error.response?.status
-    console.log(error.response)
-    switch (status) {
-      case 306:
-        message = '账号不存在'
-        break
-      case 401:
-        message = 'token失效，请重新登录'
-        break
-      case 403:
-        message = '拒绝访问'
-        break
-      case 404:
-        message = '请求地址错误'
-        break
-      case 500:
-        message = '服务器故障或参数无效'
-        break
-      default:
-        message = '网络连接故障'
-    }
-    ElMessage.error(message)
-    return Promise.reject(error)
-  },
-)
-
 /**
  * @description: 导出封装的请求方法
  * @returns {*}
@@ -131,4 +55,84 @@ const http = {
     return service.delete(url, { data, ...config })
   },
 }
+
+let canRefresh = true
+async function refreshToken(data: any) {
+  if (!canRefresh) return;
+  canRefresh = false;
+  try {
+    const res = await http.get<string>('/main/public/refresh');
+    const userStore = useUserStore();
+    userStore.token = '' + res;
+    router.push(LOGIN_URL)
+    return Promise.reject(data);
+  } catch (error) {
+    ElMessage.error('登录失效，请重新登录！')
+    RESEETSTORE();
+    router.push(LOGIN_URL)
+    return Promise.reject(data);
+  }
+}
+
+/**
+ * @description: 请求拦截器
+ * @returns {*}
+ */
+service.interceptors.request.use(
+  (config) => {
+    const userStore = useUserStore()
+    const token = userStore.token
+    if (token) {
+      config.headers['access-token'] = token
+    }
+    const r = userStore.refreshToken;
+    if (r != null && r != '') {
+      CookieUtil.set('refresh-token', r);
+    }
+    //无法直接设置，因为不安全会被阻止
+    // config.headers['origin'] = window.location.origin
+    return config
+  },
+  (error: AxiosError) => {
+    ElMessage.error(error.message)
+    return Promise.reject(error)
+  },
+)
+/**
+ * @description: 响应拦截器
+ * @returns {*}
+ * TODO: 通过header获取refresh-token并放入cookie，这是权宜之举，生产环境有安全隐患
+ */
+service.interceptors.response.use(
+  async (response: AxiosResponse) => {
+    const { data } = response
+    const r = response.headers['refresh-token'];
+    if (r != null && r != '') {
+      const userStore = useUserStore();
+      userStore.setRefreshToken(r);
+      CookieUtil.set('refresh-token', r);
+    }
+    if (ResultEnum.EXPIRE.includes(data.code)) {
+      // ElMessage.error('登录失效，请重新登录！')
+      // RESEETSTORE();
+      // router.push(LOGIN_URL)
+      // return Promise.reject(data)
+      return refreshToken(data)
+    }
+    if (data.code && data.code !== ResultEnum.SUCCESS) {
+      ElMessage.error(data.message || ResultEnum.ERRMESSAGE)
+      return Promise.reject(data)
+    }
+    return data
+  },
+  async (error: AxiosError) => {
+    // HTTP 状态码
+    const status = error.response?.status
+    if (status == 305 || status == 601 || status == 602) {
+      refreshToken(error);
+      return Promise.reject(error);
+    }
+    return Promise.reject(error)
+  },
+)
 export default http
