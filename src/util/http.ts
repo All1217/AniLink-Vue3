@@ -9,10 +9,8 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from './userStore'
 import { ResultEnum } from '@/api/enums'
 import { ResultData } from '@/api/Models'
-import { LOGIN_URL } from '@/util/config'
-import { RESEETSTORE } from './userStore'
 import { CookieUtil } from '@/util/cookie'
-import router from '@/router'
+import { doRefreshToken } from '@/util/refreshToken'
 
 export const service: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -56,24 +54,6 @@ const http = {
   },
 }
 
-let canRefresh = true
-async function refreshToken(data: any) {
-  if (!canRefresh) return;
-  canRefresh = false;
-  try {
-    const res = await http.get<string>('/main/public/refresh');
-    const userStore = useUserStore();
-    userStore.token = '' + res;
-    router.push(LOGIN_URL)
-    return Promise.reject(data);
-  } catch (error) {
-    ElMessage.error('登录失效，请重新登录！')
-    RESEETSTORE();
-    router.push(LOGIN_URL)
-    return Promise.reject(data);
-  }
-}
-
 /**
  * @description: 请求拦截器
  * @returns {*}
@@ -113,11 +93,7 @@ service.interceptors.response.use(
       CookieUtil.set('refresh-token', r);
     }
     if (ResultEnum.EXPIRE.includes(data.code)) {
-      // ElMessage.error('登录失效，请重新登录！')
-      // RESEETSTORE();
-      // router.push(LOGIN_URL)
-      // return Promise.reject(data)
-      return refreshToken(data)
+      return doRefreshToken(data)
     }
     if (data.code && data.code !== ResultEnum.SUCCESS) {
       ElMessage.error(data.message || ResultEnum.ERRMESSAGE)
@@ -129,7 +105,7 @@ service.interceptors.response.use(
     // HTTP 状态码
     const status = error.response?.status
     if (status == 305 || status == 601 || status == 602) {
-      refreshToken(error);
+      doRefreshToken(error);
       return Promise.reject(error);
     }
     return Promise.reject(error)
