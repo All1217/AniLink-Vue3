@@ -114,6 +114,7 @@ export interface Partition {
 export interface UserState {
     userInfo: User
     token?: string
+    refreshToken?: string
     sh?: SearchHistory[]
 }
 export interface FavState {

@@ -34,14 +34,12 @@ span {
 }
 
 a {
-    color: #666;
     text-decoration: none;
     cursor: pointer;
     transition: color .3s ease, background-color .3s ease;
 }
 
 router-link {
-    color: #666;
     text-decoration: none;
     transition: color .3s ease, background-color .3s ease;
 }
