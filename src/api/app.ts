@@ -144,6 +144,12 @@ export function onLogin(data: LoginData) {
     return http.post<string>('/main/login', data)
 }
 /**
+ * @description 登出
+ */
+export function onLogout() {
+    http.post('/main/logout')
+}
+/**
  * @description 获取登录用户信息
  */
 export function getUserInfoByUid() {

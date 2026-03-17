@@ -101,9 +101,7 @@
       <div class="avatar-box">
         <a class="avatar" v-show="login.isLogin" @mouseenter="switchDialog('user')"
           @click="jumpToUserPage(`/user_page/${userStore.userInfo.uid}`)">
-          <img
-            :src="userData.avatar ? userData.avatar : DEFAULT_AVATAR"
-            alt="">
+          <img :src="userData.avatar ? userData.avatar : DEFAULT_AVATAR" alt="">
         </a>
         <div class="un-login" v-show="!login.isLogin" @click="onLoginBtnClick(true, false)">登录</div>
       </div>
@@ -444,13 +442,14 @@ import runp from '@/assets/images/login_right_image.png';
 import { useUserStore } from '@/util/userStore'
 import { validateAccount, validatePass, formatTimeGap, formatCount, removeOneElement } from "./util";
 import { LOGIN_URL } from "./util/config";
-import {DEFAULT_AVATAR} from "@/api/constants"
+import { DEFAULT_AVATAR } from "@/api/constants"
 
 import {
   partitonList, Partition, defaultUser, onLogin,
   getUserInfoByUid, onRegister, getWhisperUnread, DefaultUserStats
   , SearchHistory, HotSearch,
-  getHotSearch
+  getHotSearch,
+  onLogout
 } from '@/api/app'
 import { getFavoriteList, getVideoInfavor } from '@/api/favorite'
 import { UserStatsQueryVo } from "./api/UserPage/types";
@@ -458,6 +457,7 @@ import { getUserStatsByUid } from '@/api/UserPage/index'
 import { Favorite, User, UserStats, VideoVo } from '@/api/Models';
 import NoData from "./components/NoData.vue";
 import HistoryDialog from "./components/App/HistoryDialog.vue";
+import { nextTick } from "vue";
 const userStore = useUserStore();
 const router = useRouter();
 //分区列表
@@ -529,10 +529,14 @@ async function callLogin() {
   }
 }
 async function callLogout() {
-  login.isLogin = false
-  search_history.value = []
-  userStore.Logout()
-  router.replace(LOGIN_URL)
+  onLogout();
+  nextTick(() => {
+    //调用登出函数后稍等片刻再清除本地toke，不然会因为未知原因错误调用refresh-token
+    login.isLogin = false
+    search_history.value = []
+    userStore.Logout()
+    router.replace(LOGIN_URL)
+  })
 }
 async function callRegister() {
   if (!validatePass(login.password)) {

@@ -53,6 +53,11 @@ export interface RecoQueryVo {
     vid?: number
     tag?: number
 }
+export interface LikeDTO {
+    bizId: number
+    bizType: number
+    liked: boolean
+}
 export interface BatchCollectVo {
     vid: number
     fids: number[]
@@ -161,11 +166,11 @@ export function getLikeState(query: UserVideoQuery) {
 /**
  * @description 点赞
  */
-export function like(query: UserVideoQuery) {
-    return http.post<UserVideo>('/main/video/interact/like', query)
+export function like(dto: LikeDTO) {
+    http.post('/remark/like', dto)
 };
 /**
- * @description 点赞
+ * @description 投币
  */
 export function coin(query: UserVideoQuery) {
     return http.post<UserVideo>('/main/video/interact/coin', query)

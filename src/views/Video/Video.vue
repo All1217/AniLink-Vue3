@@ -272,6 +272,7 @@ import { getVideo, getUserInfo, getVideoStats, defaultUserInfo, defaultVideo, de
 import {
   getLikeState, UserVideoQuery, getDanmuList,
   like, getCoinState, getCollectState, coin, getFollow, follow, unFollow,
+  LikeDTO,
 } from '@/api/Video';
 import Artplayer from 'artplayer';
 import { DateStringType, Interaction } from '@/api/enums';
@@ -553,27 +554,13 @@ async function onGetLikeState(query: UserVideoQuery) {
   }
 }
 async function onLike(query: UserVideoQuery) {
-  try {
-    const res = await like(query)
-    if (res.code == 200) {
-      userVideo.value.love = res.data.love
-      if (res.data.love >= 1) {
-        ElMessage({
-          type: 'info',
-          message: '点赞成功！'
-        })
-        videoStats.value.good++;
-      } else {
-        ElMessage({
-          type: 'info',
-          message: '取消点赞'
-        })
-        videoStats.value.good--;
-      }
-    }
-  } catch (error) {
-    ElMessage.error('获取点赞信息失败！')
+  like({ bizId: query.vid, bizType: 0, liked: userVideo.value.love == 0 ? true : false });
+  if (userVideo.value.love == 0) {
+    userVideo.value.love = 1;
+  } else {
+    userVideo.value.love = 0;
   }
+  videoStats.value.good++;
 }
 async function onCoin(query: UserVideoQuery) {
   try {
