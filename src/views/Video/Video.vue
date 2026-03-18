@@ -544,9 +544,9 @@ async function onGetAuthorStat(uid: number) {
 }
 async function onGetLikeState(query: UserVideoQuery) {
   try {
-    const { data } = await getLikeState(query)
+    const { data } = await getLikeState(query.vid)
     if (data) {
-      userVideo.value.love = data.love
+      userVideo.value.love = data
     }
   } catch (error) {
     console.log(error)
@@ -557,10 +557,11 @@ async function onLike(query: UserVideoQuery) {
   like({ bizId: query.vid, bizType: 0, liked: userVideo.value.love == 0 ? true : false });
   if (userVideo.value.love == 0) {
     userVideo.value.love = 1;
+    videoStats.value.good++;
   } else {
     userVideo.value.love = 0;
+    videoStats.value.good--;
   }
-  videoStats.value.good++;
 }
 async function onCoin(query: UserVideoQuery) {
   try {

@@ -160,8 +160,8 @@ export function getCommonTags(query: RecoQueryVo) {
 /**
  * @description 获取点赞状态信息
  */
-export function getLikeState(query: UserVideoQuery) {
-    return http.get<UserVideo>('/main/video/getInterActLike', query)
+export function getLikeState(bizId: number) {
+    return http.get<number>(`/remark/get/like?bizId=${bizId}`)
 };
 /**
  * @description 点赞

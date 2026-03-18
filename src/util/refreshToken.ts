@@ -11,8 +11,6 @@ export async function doRefreshToken(data: any) {
     canRefresh = false;
     try {
         const res = await refreshToken();
-        ElMessage.success(res)
-        // ElMessage.success(res.data)
         if (res.code == 200) {
             const userStore = useUserStore();
             userStore.token = res.data;
