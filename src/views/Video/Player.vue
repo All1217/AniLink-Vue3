@@ -27,7 +27,7 @@ import { ElMessage } from 'element-plus';
 
 import { ref, onMounted, onBeforeUnmount, shallowRef, nextTick, watch, PropType } from "vue";
 
-import { UserVideoQuery, addPlay, postDanmu, insertHistory } from '@/api/Video';
+import { UserVideoQuery, addPlay, postDanmu, insertHistory, updateHistory, VideoRecordFormDTO } from '@/api/Video';
 import { DateStringType, Interaction } from '@/api/enums';
 import { getFormatCurTime } from '@/util/index'
 import { useUserStore } from '@/util/userStore';
@@ -131,12 +131,12 @@ const connectWebsocket = () => {
     if (socket.value) socket.value.close();
     const now = new Date();
     let tuid = 0;
-    if(userStore.token){
+    if (userStore.token) {
         tuid = userStore.userInfo.uid;
     }
     // socket.value = new WebSocket(`ws://localhost:5051/ws/video?uid=${'' + tuid + now.getTime()}&vid=${props.videoInfo.vid}`);
     socket.value = new WebSocket(`ws://localhost:8090/ws/video/${props.videoInfo.vid}/${'' + tuid + now.getTime()}`);
-    console.log( 'websocket状态：' +socket.value.readyState)
+    console.log('websocket状态：' + socket.value.readyState)
     socket.value.onmessage = parseMessage
 };
 const sendTestMessage = (text: string) => {
@@ -206,6 +206,20 @@ async function onPostDanmu(query: MyDanmu) {
 function onAddPlayCount() {
     emit('addPlayCount');
 }
+//定时器与定时任务
+const updateProgress = ref(null);
+function onUpdateProgress() {
+    // ElMessage.success(`更新视频播放进度: ${instance.value.currentTime}`)
+    const time = new Date()
+    const dto: VideoRecordFormDTO = {
+        vid: props.videoInfo.vid,
+        duration: props.videoInfo.duration,
+        moment: instance.value.currentTime,
+        commitTime: getFormatCurTime(time.getTime(), DateStringType.ALL)
+    }
+    updateHistory(dto);
+
+}
 watch(() => props.videoInfo.videoUrl, (newVal) => {
     if (newVal && instance && instance.value) {
         instance.value.switch = newVal
@@ -245,27 +259,17 @@ onMounted(() => {
             onAddPlay(query)
             onAddHistory(instance.value.currentTime);
         }
+        updateProgress.value = setInterval(onUpdateProgress, 3000);
     })
-    //TODO 销毁时发送请求无效
-    // instance.value.on('destroy', () => {
-    //     const date = new Date();
-    //     const param: BrowseHistory = {
-    //         id: 0, uid: props.uid, vid: props.vid,
-    //         viewTime: getFormatCurTime(date.getTime(), DateStringType.ALL),
-    //         duration: instance.value.currentTime,
-    //         //TODO 判断是否完播的逻辑太简单了，应该计算累计播放时长
-    //         isFinish: instance.value.currentTime >= props.duration - 2 ? 1 : 0,
-    //         device: 'PC',
-    //         ip: '北京',
-    //         isDelete: 0
-    //     }
-    //     notifyStore.notifyB({ type: 'post', data: param, url: '/main/history/add' })
-    // })
+    instance.value.on('pause', () => {
+        clearInterval(updateProgress.value);
+    })
 })
 onBeforeUnmount(() => {
     if (instance.value) {
         instance.value.destroy(false);
     }
+    clearInterval(updateProgress.value);
     if (socket.value) socket.value.close();
 });
 </script>

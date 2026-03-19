@@ -53,10 +53,21 @@ export interface RecoQueryVo {
     vid?: number
     tag?: number
 }
+export interface LikeDTO {
+    bizId: number
+    bizType: number
+    liked: boolean
+}
 export interface BatchCollectVo {
     vid: number
     fids: number[]
     uid: number
+}
+export interface VideoRecordFormDTO {
+    vid: number
+    duration: number
+    moment: number
+    commitTime: string
 }
 export const defaultVideoVo: VideoVo = {
     uid: 0,
@@ -155,17 +166,17 @@ export function getCommonTags(query: RecoQueryVo) {
 /**
  * @description 获取点赞状态信息
  */
-export function getLikeState(query: UserVideoQuery) {
-    return http.get<UserVideo>('/main/video/getInterActLike', query)
+export function getLikeState(bizId: number) {
+    return http.get<number>(`/remark/get/like?bizId=${bizId}`)
 };
 /**
  * @description 点赞
  */
-export function like(query: UserVideoQuery) {
-    return http.post<UserVideo>('/main/video/interact/like', query)
+export function like(dto: LikeDTO) {
+    http.post('/remark/like', dto)
 };
 /**
- * @description 点赞
+ * @description 投币
  */
 export function coin(query: UserVideoQuery) {
     return http.post<UserVideo>('/main/video/interact/coin', query)
@@ -205,4 +216,10 @@ export function unFollow(query: Follow){
  */
 export function insertHistory(query: BrowseHistory){
     return http.post('/main/history/add', query)
+}
+/**
+ * @description 更新播放进度
+ */
+export function updateHistory(dto: VideoRecordFormDTO){
+    http.post('/main/video/interact/record/add', dto)
 }
