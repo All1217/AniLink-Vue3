@@ -63,6 +63,12 @@ export interface BatchCollectVo {
     fids: number[]
     uid: number
 }
+export interface VideoRecordFormDTO {
+    vid: number
+    duration: number
+    moment: number
+    commitTime: string
+}
 export const defaultVideoVo: VideoVo = {
     uid: 0,
     nickname: "string",
@@ -210,4 +216,10 @@ export function unFollow(query: Follow){
  */
 export function insertHistory(query: BrowseHistory){
     return http.post('/main/history/add', query)
+}
+/**
+ * @description 更新播放进度
+ */
+export function updateHistory(dto: VideoRecordFormDTO){
+    http.post('/main/video/interact/record/add', dto)
 }
