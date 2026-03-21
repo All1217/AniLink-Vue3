@@ -41,9 +41,10 @@ export interface ChatQueryVo extends Query {
     senderId?: number
     targetId?: number
 }
-export interface WebsocketMessage {
-    from: number | string
-    to: number | string
-    isSystem: boolean
-    message: string
+export interface ChatMessageDTO {
+    from: number
+    to: number
+    type: string
+    content?: string
+    token?: string
 }

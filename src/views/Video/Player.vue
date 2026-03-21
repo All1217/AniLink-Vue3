@@ -27,7 +27,7 @@ import { ElMessage } from 'element-plus';
 
 import { ref, onMounted, onBeforeUnmount, shallowRef, nextTick, watch, PropType } from "vue";
 
-import { UserVideoQuery, addPlay, postDanmu, insertHistory, updateHistory, VideoRecordFormDTO } from '@/api/Video';
+import { UserVideoQuery, addPlay, postDanmu, insertHistory, updateHistory, VideoRecordFormDTO, CountMessageDTO, CountMessageVO } from '@/api/Video';
 import { DateStringType, Interaction } from '@/api/enums';
 import { getFormatCurTime } from '@/util/index'
 import { useUserStore } from '@/util/userStore';
@@ -88,7 +88,6 @@ const option: Artplayer['Option'] = {
                     return false;
                 }
                 callPostDanmu(danmu)
-                sendTestMessage(danmu.text)
                 return true
             },
         }),
@@ -120,6 +119,7 @@ async function onInsertHistory(param: BrowseHistory) {
     }
 }
 //websocket
+const heartBeatInter = ref(null)
 const socket = ref<null | WebSocket>(null);
 watch(() => props.videoInfo.vid, (newVal) => {
     if (newVal && newVal != 0) {
@@ -129,35 +129,31 @@ watch(() => props.videoInfo.vid, (newVal) => {
 )
 const connectWebsocket = () => {
     if (socket.value) socket.value.close();
-    const now = new Date();
-    let tuid = 0;
-    if (userStore.token) {
-        tuid = userStore.userInfo.uid;
-    }
-    // socket.value = new WebSocket(`ws://localhost:5051/ws/video?uid=${'' + tuid + now.getTime()}&vid=${props.videoInfo.vid}`);
-    socket.value = new WebSocket(`ws://localhost:8090/ws/video/${props.videoInfo.vid}/${'' + tuid + now.getTime()}`);
-    console.log('websocket状态：' + socket.value.readyState)
-    socket.value.onmessage = parseMessage
-};
-const sendTestMessage = (text: string) => {
-    if (socket.value == null || socket.value.readyState === WebSocket.CLOSED) {
-        ElMessage.warning('正在连接websocket，请稍后……');
-        connectWebsocket();
+    if (!userStore.token) {
         return;
     }
-    const msg = { uid: userStore.userInfo.uid, vid: props.videoInfo.vid, isDanmu: true, message: text, cnt: 0 }
-    socket.value.send(JSON.stringify(msg));
+    socket.value = new WebSocket(`ws://localhost:8024/video`);
+    socket.value.onopen = () => {
+        socket.value.onmessage = (e) => {
+            const come: CountMessageVO = JSON.parse(e.data);
+            try {
+                if (come.type == 'cnt') { watchCount.value = come.count; }
+            } finally { }
+        };
+        const msg: CountMessageDTO = { vid: props.videoInfo.vid, type: 'join' }
+        socket.value.send(JSON.stringify(msg));
+        heartBeatInter.value = setInterval(() => {
+            const heatBeat: CountMessageDTO = { vid: props.videoInfo.vid, type: 'heartbeat' }
+            socket.value.send(JSON.stringify(heatBeat));
+        }, 5000);
+    };
+    socket.value.onclose = () => { clearInterval(heartBeatInter.value); };
+    socket.value.onerror = (error) => {
+        console.error('WebSocket 连接错误：', error);
+        clearInterval(heartBeatInter.value);
+    };
 };
-const parseMessage = (event) => {
-    const come = JSON.parse(event.data);
-    console.log('收到消息：', come)
-    if (!come.type) {
-        watchCount.value = come.cnt;
-    } else if (come.type) {
-        console.log('发送弹幕：', come.message)
-        instance.value.plugins.artplayerPluginDanmuku.emit({ text: come.message, time: instance.value.currentTime + 2 });
-    }
-}
+
 function callPostDanmu(e) {
     const time = new Date()
     const query: Danmu = {

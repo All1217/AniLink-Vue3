@@ -116,10 +116,15 @@
 </template>
 
 <script setup lang="ts">
+
+/**
+ * @todo: 聊天中途退出，期间对方发送了新消息，再次进入消息中心，未读消息显示数量有误，除了刚刚退出期间对方发的那几条，连以前对方发的都统计在内了
+ */
+
 import "@/styles/MessageCenter/index.less";
 import { ref, onMounted, onBeforeUnmount, reactive, watch, nextTick } from "vue";
 import { ElMessage } from "element-plus";
-import { ChatVo, ChatMessage, ChatQueryVo, Chat, WebsocketMessage } from '@/api/MessageCenter/types';
+import { ChatVo, ChatMessage, ChatQueryVo, Chat, ChatMessageDTO } from '@/api/MessageCenter/types';
 import { getChatVoList, deleteChat, getChatMessage, geneChat, insertChatMessage, updateOpenTime, updateUnread } from '@/api/MessageCenter/index'
 import { useUserStore } from "@/util/userStore";
 import { removeOneElement, formatStringDate, geneId, getFormatCurTime, timeGap } from '@/util/index';
@@ -311,58 +316,78 @@ async function onInsertChatMessage(params: ChatMessage) {
  * @description: websocket
  */
 const socket = ref<null | WebSocket>(null);
+const heartBeatInter = ref(null)
 const connectWebsocket = () => {
-  if (socket.value) socket.value.close();// 关闭之前的连接（如果存在）
-  // socket.value = new WebSocket(`ws://localhost:5051/ws/chat?uid=${'' + userStore.userInfo.uid}`);
-  socket.value = new WebSocket(`ws://localhost:8090/ws/${'' + userStore.userInfo.uid}`);
-  // 处理 WebSocket 事件
+  if (socket.value) socket.value.close();
+  if (!userStore.token) {
+    return;
+  }
+  socket.value = new WebSocket(`ws://localhost:8024/chat`);
   socket.value.onopen = () => {
-    console.log('WebSocket 连接已打开');
-  };
-  socket.value.onmessage = (event) => {
-    const come = JSON.parse(event.data);
-    const me = userStore.userInfo.uid;
-    const t = curTargetUid.value;
-    const curTime = new Date();
-    if ((come.from == me && come.to == t) || (come.from == t && come.to == me)) {
-      messageList.value.push(
-        {
-          id: -1,
-          targetId: me,
-          senderId: t,
-          content: come.message,
-          senderDel: 0,
-          targetDel: 0,
-          withdraw: 0,
-          messageType: 0,
-          time: getFormatCurTime(curTime.getTime(), DateStringType.ALL),
-          readStatus: 1
+    //确认连接成功后，通知服务端存储用户信息
+    const msg: ChatMessageDTO = { from: userStore.userInfo.uid, to: userStore.userInfo.uid, type: 'auth' }
+    socket.value.send(JSON.stringify(msg));
+    // 绑定收消息回调函数
+    socket.value.onmessage = (e) => {
+      const come: ChatMessageDTO = JSON.parse(e.data);
+      if (come.type == 'private') {
+        const me = userStore.userInfo.uid;
+        const to = curTargetUid.value;
+        const curTime = new Date();
+        if ((come.from == me && come.to == to) || (come.from == to && come.to == me)) {
+          /**
+           * 如果是正在跟你聊天的那个人发过来的，就直接在本聊天界面列表加一条消息
+           */
+          messageList.value.push({
+            id: -1,
+            targetId: me,
+            senderId: to,
+            content: come.content,
+            senderDel: 0,
+            targetDel: 0,
+            withdraw: 0,
+            messageType: 0,
+            time: getFormatCurTime(curTime.getTime(), DateStringType.ALL),
+            readStatus: 1
+          })
+        } else {
+          /**
+           * 如果非当前界面的其他人给你发消息，就修改左侧联系人列表
+           */
+          let flag = false;
+          chatVoList.value.some((e) => {
+            //如果这个人已经被列出来
+            if ((e.senderId == come.from && come.to == e.targetId) || (e.targetId == come.from && come.to == e.senderId)) {
+              e.unreadCount++;
+              flag = true;
+            }
+          })
+          if (!flag) {
+            //如果这个人还没列出来
+            //TODO: 直接调接口重新查一遍联系人列表就好了
+            onGeneChat({
+              id: 0,
+              senderId: come.from,
+              targetId: userStore.userInfo.uid,
+              latestTime: getFormatCurTime(new Date().getTime(), DateStringType.ALL)
+            })
+          }
         }
-      )
-    }
-    else {
-      let flag = false;
-      chatVoList.value.some((e) => {
-        if ((e.senderId == come.from && come.to == e.targetId) || (e.targetId == come.from && come.to == e.senderId)) {
-          e.unreadCount++;
-          flag = true;
-        }
-      })
-      if (!flag) {
-        onGeneChat({
-          id: 0,
-          senderId: come.from,
-          targetId: userStore.userInfo.uid,
-          latestTime: getFormatCurTime(new Date().getTime(), DateStringType.ALL)
+        nextTick(() => {
+          //修改滑条
+          messageListContainer.value.scrollTop = messageListContainer.value.scrollHeight;
         })
       }
-    }
-    nextTick(() => {
-      messageListContainer.value.scrollTop = messageListContainer.value.scrollHeight;
-    })
+    };
+    heartBeatInter.value = setInterval(() => {
+      const heatBeat: ChatMessageDTO = { from: userStore.userInfo.uid, to: userStore.userInfo.uid, type: 'heartbeat' }
+      socket.value.send(JSON.stringify(heatBeat));
+    }, 5000);
   };
-  socket.value.onclose = () => {
-    console.log('WebSocket 连接已关闭');
+  socket.value.onclose = () => { clearInterval(heartBeatInter.value); };
+  socket.value.onerror = (error) => {
+    console.error('WebSocket 连接错误：', error);
+    clearInterval(heartBeatInter.value);
   };
 };
 const sendMessage = () => {
@@ -373,7 +398,7 @@ const sendMessage = () => {
     return;
   }
   if (socket.value && socket.value.readyState === WebSocket.OPEN) {
-    const msg: WebsocketMessage = { from: userStore.userInfo.uid, to: curTargetUid.value, message: inputText.text, isSystem: false };
+    const msg: ChatMessageDTO = { from: userStore.userInfo.uid, to: curTargetUid.value, content: inputText.text, type: 'private' };
     socket.value.send(JSON.stringify(msg));
     let curTime = new Date();
     const q: ChatMessage = {
@@ -394,8 +419,6 @@ const sendMessage = () => {
     nextTick(() => {
       messageListContainer.value.scrollTop = messageListContainer.value.scrollHeight;
     })
-  } else {
-    console.error('WebSocket 未连接');
   }
 };
 
