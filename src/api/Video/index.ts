@@ -63,12 +63,22 @@ export interface BatchCollectVo {
     fids: number[]
     uid: number
 }
+export interface CountMessageDTO {
+    vid: number
+    token?: string
+    type: string
+}
+export interface CountMessageVO {
+    count: number
+    type: string
+}
 export interface VideoRecordFormDTO {
     vid: number
     duration: number
     moment: number
     commitTime: string
 }
+
 export const defaultVideoVo: VideoVo = {
     uid: 0,
     nickname: "string",
