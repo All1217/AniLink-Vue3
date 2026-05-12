@@ -1,13 +1,18 @@
 <template>
     <div class="danmaku-box">
         <div class="danmaku-wrap">
+            <div class="tag-chart-wrap" v-show="expand">
+                <span>看看TA们在弹幕区的发言……</span>
+                <div class="tag-chart" ref="tagRankList"></div>
+            </div>
             <div class="bui-collapse-header flex-row-ac" v-show="danmuMode == 3">
                 <div class="bpx-player-filter flex-row-ac">
                     <span>您与TA的共同点：</span>
                 </div>
             </div>
             <div class="bui-collapse-tag-container">
-                <el-tag type="primary" v-show="danmuMode == 3" size="small" style="margin-right: 10px;" v-for="tag in commonTags">{{ tag }}</el-tag>
+                <el-tag type="primary" v-show="danmuMode == 3" size="small" style="margin-right: 10px;"
+                    v-for="tag in commonTags">{{ tag }}</el-tag>
             </div>
             <div class="bui-collapse-header flex-row-ac" @click="expand = !expand">
                 <div class="bui-collapse-arrow" :style="expand ? 'transform:rotate(180deg);' : ''">
@@ -19,6 +24,7 @@
                     <el-tag type="success" v-show="danmuMode == 0" size="small">高质量弹幕贡献者优先</el-tag>
                     <el-tag type="success" v-show="danmuMode == 1" size="small">干货贡献者优先</el-tag>
                     <el-tag type="success" v-show="danmuMode == 3" size="small">{{ curSelected }}</el-tag>
+                    <el-tag type="success" v-show="danmuMode == 4" size="small">{{ curSelectedTag }}</el-tag>
                 </div>
             </div>
             <div class="bui-collapse-body" v-show="expand">
@@ -82,10 +88,11 @@
 </template>
 <script setup lang="ts">
 import { Danmu, Video, User } from "@/api/Models";
-import { ref, PropType, watch } from "vue";
-import { formatStringDate, formatTimeGap } from '@/util/index'
+import { ref, PropType, watch, nextTick, onUnmounted } from "vue";
+import * as echarts from 'echarts';
+import { formatStringDate, formatTimeGap } from '@/util/index';
 import { DateStringType } from "@/api/enums";
-import { getSimilarUsers, getDanmuByTag, RecoQueryVo, getCommonTags } from "@/api/Video/index"
+import { getSimilarUsers, getDanmuByTag, RecoQueryVo, getCommonTags, getTagRank, TagRankListVO } from "@/api/Video/index";
 import { defaultVideo } from "@/api";
 import { useUserStore } from '@/util/userStore';
 const vi = ref<Video>(defaultVideo)
@@ -104,6 +111,7 @@ const props = defineProps({
 const userList = ref<User[]>([])
 //弹幕信息
 const danmu = ref<Danmu[]>([])
+// 是否展开弹幕列表
 const expand = ref<boolean>(false)
 
 watch(() => props.danmuList, (newVal) => {
@@ -133,6 +141,107 @@ async function onSimilarUsers() {
         console.log(error)
     }
 }
+// ECharts 环状图相关
+const curSelectedTag = ref<string>('');
+const tagRankList = ref<HTMLDivElement | null>(null);
+let tagChart: echarts.ECharts | null = null;
+// 原始模拟数据
+const mockTagData: TagRankListVO[] = [
+    { name: '技术宅', value: 135 },
+    { name: '二次元', value: 120 },
+    { name: '萌新', value: 98 },
+    { name: '杂谈', value: 87 },
+    { name: '考据党', value: 74 },
+    { name: '科普', value: 61 },
+    { name: '野生字幕君', value: 52 },
+    { name: '计数君', value: 43 }
+];
+// 响应式标签数据，初始用模拟数据
+const tagData = ref<TagRankListVO[]>(mockTagData);
+
+// 初始化或更新环状图
+function initOrUpdateChart() {
+    if (!tagRankList.value) return;
+    if (!tagChart) {
+        tagChart = echarts.init(tagRankList.value);
+        tagChart.on('click', (params: any) => {
+            if (params.name) {
+                curSelectedTag.value = params.name;
+                onDanmuTag(4);
+            }
+        });
+    }
+    const option = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+            bottom: 0,
+            textStyle: {
+                color: '#333',
+                fontSize: 12
+            }
+        },
+        series: [
+            {
+                type: 'pie',
+                radius: ['35%', '60%'],  // 环状
+                center: ['50%', '35%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 4,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: 18,
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: tagData.value
+            }
+        ]
+    };
+    tagChart.setOption(option);
+}
+async function onGetTagRank(vid: number) {
+    try {
+        const res = await getTagRank(vid);
+        if (res.code == 200 && res.data) {
+            // 假设后端返回的数据结构与 tagData 一致，如 [{ name: ..., value: ... }]
+            tagData.value = res.data;
+            // 如果图表已存在，直接更新数据；否则等待 expand 变为 true 时再初始化
+            if (tagChart) {
+                tagChart.setOption({ series: [{ data: tagData.value }] });
+            }
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+// 当 expand 变为 true 时，DOM 才显示，需要延迟初始化图表
+watch(expand, (newVal) => {
+    if (newVal) {
+        nextTick(() => {
+            initOrUpdateChart();
+            // 如果需要一展开就去请求后端，可在此处调用
+            if (vi.value.vid) onGetTagRank(vi.value.vid);
+        });
+    }
+});
+
+
+
 //弹幕显示模式,0高质量，1干货，2默认,3指定用户
 const danmuMode = ref<number>(2);
 const curSelected = ref<string>('');
@@ -140,7 +249,8 @@ const commonTags = ref<string[]>(['null'])
 async function onDanmuTag(tag: number) {
     let query: RecoQueryVo = {
         vid: vi.value.vid,
-        tag: tag
+        tag: tag,
+        tagName: tag == 4 ? curSelectedTag.value : ''
     }
     try {
         const res = await getDanmuByTag(query)
@@ -180,6 +290,12 @@ function onFilterDanmuByUser(uid: number, nickname: string) {
     danmu.value = temp;
     onGetCommonTags(uid);
 }
+onUnmounted(() => {
+    if (tagChart) {
+        tagChart.dispose();
+        tagChart = null;
+    }
+});
 </script>
 <style scoped lang="less">
 .danmaku-box {
@@ -188,6 +304,29 @@ function onFilterDanmuByUser(uid: number, nickname: string) {
 
     .danmaku-wrap {
         width: 100%;
+
+        .tag-chart-wrap {
+            width: 100%;
+            height: 290px;
+            border-radius: 8px;
+            overflow: hidden;
+
+            span {
+                display: inline-block;
+                width: 100%;
+                height: 30px;
+                color: black;
+                font-weight: bold;
+                font-size: 18px;
+                line-height: 30px;
+                text-align: center;
+            }
+
+            .tag-chart {
+                width: 100%;
+                height: 260px;
+            }
+        }
 
         .bui-collapse-tag-container {
             padding: 10px;

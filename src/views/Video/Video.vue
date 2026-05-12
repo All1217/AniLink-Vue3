@@ -272,7 +272,6 @@ import { getVideo, getUserInfo, getVideoStats, defaultUserInfo, defaultVideo, de
 import {
   getLikeState, UserVideoQuery, getDanmuList,
   like, getCoinState, getCollectState, coin, getFollow, follow, unFollow,
-  LikeDTO,
 } from '@/api/Video';
 import Artplayer from 'artplayer';
 import { DateStringType, Interaction } from '@/api/enums';

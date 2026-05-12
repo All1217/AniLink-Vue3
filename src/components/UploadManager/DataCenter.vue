@@ -59,7 +59,7 @@
                         <div class="top flex-row-ac jc-spb">
                             <div class="cell-title flex-row-ac">
                                 <span :style="curCell == index || hoverCell == index ? 'color:#fff;' : ''">{{ e.tagName
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="cell-diff flex-row-ac" v-show="cellData[e.tagName].gap != 0">
                                 <svg class="c-icon diff-icon" aria-hidden="true"
@@ -147,7 +147,7 @@ const cellData = reactive({
     '分享': { mainRes: [], gap: 0, total: 0 },
     '充电': { mainRes: [], gap: 0, total: 0 }
 })
-function resetData(){//重置全部数据
+function resetData() {//重置全部数据
     onGetLike()
     onGetTotalPlay()
 }
@@ -192,7 +192,7 @@ function onCellChange(id: number, tag: string, fn: () => void) {
     if (tag == ct.value) return;
     curCell.value = id
     ct.value = tag
-    if(cellData[ct.value].mainRes.length==0)fn();
+    if (cellData[ct.value].mainRes.length == 0) fn();
     resetOption();
 }
 const canvas = ref<HTMLDivElement | null>(null);
