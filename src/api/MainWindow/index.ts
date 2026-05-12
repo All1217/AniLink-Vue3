@@ -100,5 +100,5 @@ export const parVideoList: VideoVo[] = [
  * @description 获取首页推荐视频列表
  */
 export function getRecVideoList(query: VideoQueryVo) {
-    return http.get<PageRes<VideoVo>>('/main/video/home/pageVideo', query)
+    return http.get<PageRes<VideoVo>>('/main/video/public/pageVideo', query)
 };

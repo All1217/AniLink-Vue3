@@ -52,6 +52,7 @@ export interface RecoQueryVo {
     count?: number
     vid?: number
     tag?: number
+    tagName?: string
 }
 export interface LikeDTO {
     bizId: number
@@ -77,6 +78,10 @@ export interface VideoRecordFormDTO {
     duration: number
     moment: number
     commitTime: string
+}
+export interface TagRankListVO {
+    name: string
+    value: number
 }
 
 export const defaultVideoVo: VideoVo = {
@@ -143,14 +148,14 @@ export function postDanmu(query: Danmu) {
  * @param VideoQueryVo
  */
 export function getDefaultVideoList(query: VideoQueryVo) {
-    return http.get<PageRes<VideoVo>>('/main/video/home/pageVideo', query)
+    return http.get<PageRes<VideoVo>>('/main/video/public/pageVideo', query)
 }
 /**
  * @description 获取推荐列表
  * @param RecoQueryVo
  */
 export function getRecVideoList(query: RecoQueryVo) {
-    return http.get<VideoVo[]>('/main/video/getRealTimeRecommend', query)
+    return http.get<VideoVo[]>('/main/video/public/getRealTimeRecommend', query)
 }
 /**
  * @description 筛选标签相近的用户
@@ -206,30 +211,36 @@ export function getCollectState(query: UserVideoQuery) {
 /**
  * @description 查询关注状态
  */
-export function getFollow(query: Follow){
+export function getFollow(query: Follow) {
     return http.get<Follow>('/main/fans/get/follow', query)
 }
 /**
  * @description 关注
  */
-export function follow(query: Follow){
+export function follow(query: Follow) {
     return http.post<Follow>('/main/fans/follow', query)
 }
 /**
  * @description 取消关注
  */
-export function unFollow(query: Follow){
+export function unFollow(query: Follow) {
     return http.delete<Follow>('/main/fans/unfollow', query)
 }
 /**
  * @description 新增历史记录
  */
-export function insertHistory(query: BrowseHistory){
+export function insertHistory(query: BrowseHistory) {
     return http.post('/main/history/add', query)
 }
 /**
  * @description 更新播放进度
  */
-export function updateHistory(dto: VideoRecordFormDTO){
+export function updateHistory(dto: VideoRecordFormDTO) {
     http.post('/main/video/interact/record/add', dto)
+}
+/**
+ * @description 获取频率排前八的标签
+ */
+export function getTagRank(vid: number) {
+    return http.get<TagRankListVO[]>(`/main/danmu/getTagRankList?vid=${vid}`);
 }

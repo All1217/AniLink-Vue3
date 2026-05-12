@@ -1,4 +1,4 @@
-import {getPixelRatio} from '@/util/index'
+import { getPixelRatio } from '@/util/index'
 
 interface Barrage {
     left?: number
@@ -57,7 +57,7 @@ export class Barrager {
             val.occupation && val.left + val.width <= this.cWidth ? this.consumeText(val) : ''
             val.left -= 2
         })
-        if(this.pauseFlag){
+        if (this.pauseFlag) {
             this.barrageList.length == 0 ? this.draw = false : requestAnimationFrame(this.drawBarrage.bind(this))//这一句右半就是每帧都调用的绘画函数
         }
     }

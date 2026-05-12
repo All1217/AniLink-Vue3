@@ -5,13 +5,13 @@ import { Video, User, VideoStats, UserState, UserStats } from '@/api/Models'
  * @description 获取视频信息
  */
 export function getVideo(vid: number) {
-    return http.get<Video>('/main/video/home/getVideoById', { vid: vid })
+    return http.get<Video>('/main/video/public/getVideoById', { vid: vid })
 };
 /**
  * @description 获取视频数据
  */
 export function getVideoStats(vid: number) {
-    return http.get<VideoStats>('/main/video/home/getVideoStatsById', { vid: vid })
+    return http.get<VideoStats>('/main/video/public/getVideoStatsById', { vid: vid })
 };
 /**
  * @description 获取作者信息
