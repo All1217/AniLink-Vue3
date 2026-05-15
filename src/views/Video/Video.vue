@@ -129,7 +129,7 @@
         <div class="up-info-container flex-row-ac">
           <div class="up-info--left">
             <div class="up-avatar-wrap flex-row-ac jcc">
-              <router-link :to="{ name: 'UserPage', params: { uid: user.uid } }" class="up-avatar">
+              <router-link :to="{ name: 'UserPage', params: { uid: user.uid } }" target="_blank" class="up-avatar">
                 <img :src="user.avatar" alt="">
               </router-link>
             </div>
@@ -137,10 +137,11 @@
           <div class="up-info--right">
             <div class="up-info__detail">
               <div class="up-detail-top flex-row-ac">
-                <router-link :to="{ name: 'UserPage', params: { uid: user.uid } }" class="up-name nto">
+                <router-link :to="{ name: 'UserPage', params: { uid: user.uid } }" class="up-name nto" target="_blank">
                   {{ user.nickname }}
                 </router-link>
-                <router-link :to="{ name: 'MC_whisper', query: { targetId: user.uid } }" class="send-msg flex-row-ac">
+                <router-link :to="{ name: 'MC_whisper', query: { targetId: user.uid } }" class="send-msg flex-row-ac"
+                  target="_blank">
                   <i class="iconfont icon-sixin"></i>发消息
                 </router-link>
               </div>

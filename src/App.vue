@@ -1,7 +1,5 @@
 <!-- TODO 尝试将部分组件封装成模块，比如clear清空按钮、history-item标签等 -->
 <template>
-  <!-- 引入常驻的消息中间件 -->
-  <!-- <Tube></Tube> -->
   <div :class="is_main_window && scrollFlag ? 'navBar' : 'navBar bgc-w navBar-shadow'">
     <!-- 导航栏内部组件 -->
     <div class="nav-left">
@@ -12,20 +10,16 @@
               v-show="!(is_main_window && scrollFlag)" />
             <i class="iconfont icon-xiankuangjiazaishibaidaitiicon fp-little-icon"
               v-show="is_main_window && scrollFlag"></i>
-            <span id="first-page" :class="is_main_window && scrollFlag ? 'navBar-b-color' : 'navBar-a-color'"
+            <span id="first-page" :class="navBarColorClass"
               @mouseenter="switchDialog('firstPage')">首页&nbsp;
               <i class="iconfont icon-arrow" id="first-page-arrow"></i>
             </span>
           </router-link>
         </li>
-        <li><a @click="ElMessage.warning('敬请期待！')"><span
-              :class="is_main_window && scrollFlag ? 'jump-left navBar-b-color' : 'jump-left navBar-a-color'">番剧</span></a>
-        </li>
-        <li><a @click="ElMessage.warning('敬请期待！')"><span
-              :class="is_main_window && scrollFlag ? 'jump-left navBar-b-color' : 'jump-left navBar-a-color'">直播</span></a>
-        </li>
-        <li><a @click="ElMessage.warning('敬请期待！')"><span
-              :class="is_main_window && scrollFlag ? 'jump-left navBar-b-color' : 'jump-left navBar-a-color'">游戏中心</span></a>
+        <li v-for="item in navLeftItems" :key="item">
+          <a @click="ElMessage.warning('敬请期待！')">
+            <span :class="['jump-left', navBarColorClass]">{{ item }}</span>
+          </a>
         </li>
       </ul>
     </div>
@@ -76,18 +70,16 @@
             </div>
             <div class="popular-content">
               <div class="pop-content-left">
-                <div v-for="(item, index) in hotList" class="pop-title-item" v-show="index % 2 === 0 && index <= 8"
+                <div v-for="(item, index) in hotSearchColumns.left" :key="item.keyword" class="pop-title-item"
                   @click="onHotSearchClick(item)">
-                  <span class="pop-order" :style="(index + 1) <= 3 ? 'color: #18191c;' : 'color:9499a0:'">{{ index + 1
-                  }}</span>
+                  <span class="pop-order" :style="(index * 2 + 1) <= 3 ? 'color: #18191c;' : 'color:9499a0:'">{{ index * 2 + 1 }}</span>
                   <span class="pop-title">{{ item.show_name }}</span>
                 </div>
               </div>
               <div class="pop-content-right">
-                <div v-for="(item, index) in hotList" class="pop-title-item" v-show="index % 2 === 1 && index <= 9"
+                <div v-for="(item, index) in hotSearchColumns.right" :key="item.keyword" class="pop-title-item"
                   @click="onHotSearchClick(item)">
-                  <span class="pop-order" :style="(index + 1) <= 3 ? 'color: #18191c;' : 'color:9499a0:'">{{ index + 1
-                  }}</span>
+                  <span class="pop-order" :style="(index * 2 + 2) <= 3 ? 'color: #18191c;' : 'color:9499a0:'">{{ index * 2 + 2 }}</span>
                   <span class="pop-title">{{ item.show_name }}</span>
                 </div>
               </div>
@@ -105,37 +97,18 @@
         </a>
         <div class="un-login" v-show="!login.isLogin" @click="onLoginBtnClick(true, false)">登录</div>
       </div>
-      <div>
-        <router-link to="/message_center" target="_blank" @mouseenter="switchDialog('message')">
-          <el-icon :color="is_main_window && scrollFlag ? 'var(--white)' : '#000'" size="20" class="jump-right">
-            <Message />
+      <div v-for="nav in navRightItems" :key="nav.key">
+        <router-link v-if="nav.to" :to="nav.to" target="_blank" @mouseenter="switchDialog(nav.key)">
+          <el-icon :color="navIconColor" size="20" class="jump-right">
+            <component :is="nav.icon" />
           </el-icon>
-          <span :class="is_main_window && scrollFlag ? 'navBar-b-color' : 'navBar-a-color'">消息</span>
+          <span :class="navBarColorClass">{{ nav.label }}</span>
         </router-link>
-      </div>
-      <div>
-        <a @mouseenter="switchDialog('dynamics')" @click="ElMessage.warning('敬请期待！')">
-          <el-icon :color="is_main_window && scrollFlag ? 'var(--white)' : '#000'" size="20" class="jump-right">
-            <Connection />
+        <a v-else @mouseenter="switchDialog(nav.key)" @click="nav.onClick">
+          <el-icon :color="navIconColor" size="20" class="jump-right">
+            <component :is="nav.icon" />
           </el-icon>
-          <span :class="is_main_window && scrollFlag ? 'navBar-b-color' : 'navBar-a-color'">动态</span>
-        </a>
-      </div>
-      <div>
-        <a @click="jumpToUserPage(`/user_page/${userStore.userInfo.uid}/favList`)"
-          @mouseenter="switchDialog('collect')">
-          <el-icon :color="is_main_window && scrollFlag ? 'var(--white)' : '#000'" size="20" class="jump-right">
-            <Star />
-          </el-icon>
-          <span :class="is_main_window && scrollFlag ? 'navBar-b-color' : 'navBar-a-color'">收藏</span>
-        </a>
-      </div>
-      <div>
-        <a @click="jumpToUserPage(`/browseHistory`)" @mouseenter="switchDialog('browsingHistory')">
-          <el-icon :color="is_main_window && scrollFlag ? 'var(--white)' : '#000'" size="20" class="jump-right">
-            <Clock />
-          </el-icon>
-          <span :class="is_main_window && scrollFlag ? 'navBar-b-color' : 'navBar-a-color'">历史</span>
+          <span :class="navBarColorClass">{{ nav.label }}</span>
         </a>
       </div>
       <div>
@@ -145,42 +118,14 @@
         </button>
       </div>
     </div>
-    <!-- 悬浮窗 -->
-    <!-- 首页分区 -->
+
+    <!-- 悬浮窗：首页分区 -->
     <Dialog :dWidth="'608px'" :dHeight="'auto'" :dPos="'top: 70px; left: 40px; background: var(--white);'"
       v-show="show_dialog['firstPage']" @mouseleave="show_dialog['firstPage'] = false">
       <template #body>
         <div class="first-page-dialog">
-          <div class="fpd-col">
-            <a v-for="(item, index) in partition_list" :key="item.id" @click="ElMessage.warning('敬请期待！')"
-              v-show="index % 4 === 0">
-              <svg class="icon" aria-hidden="true">
-                <use :xlink:href="`${item.icon}`"></use>
-              </svg>
-              <span>{{ item.name }}</span>
-            </a>
-          </div>
-          <div class="fpd-col">
-            <a v-for="(item, index) in partition_list" :key="item.id" @click="ElMessage.warning('敬请期待！')"
-              v-show="index % 4 === 1">
-              <svg class="icon" aria-hidden="true">
-                <use :xlink:href="`${item.icon}`"></use>
-              </svg>
-              <span>{{ item.name }}</span>
-            </a>
-          </div>
-          <div class="fpd-col">
-            <a v-for="(item, index) in partition_list" :key="item.id" @click="ElMessage.warning('敬请期待！')"
-              v-show="index % 4 === 2">
-              <svg class="icon" aria-hidden="true">
-                <use :xlink:href="`${item.icon}`"></use>
-              </svg>
-              <span>{{ item.name }}</span>
-            </a>
-          </div>
-          <div class="fpd-col">
-            <a v-for="(item, index) in partition_list" :key="item.id" @click="ElMessage.warning('敬请期待！')"
-              v-show="index % 4 === 3">
+          <div class="fpd-col" v-for="(col, colIndex) in partitionColumns" :key="colIndex">
+            <a v-for="item in col" :key="item.id" @click="ElMessage.warning('敬请期待！')">
               <svg class="icon" aria-hidden="true">
                 <use :xlink:href="`${item.icon}`"></use>
               </svg>
@@ -190,7 +135,8 @@
         </div>
       </template>
     </Dialog>
-    <!-- 消息 -->
+
+    <!-- 悬浮窗：消息 -->
     <Dialog :dWidth="'142px'" :dHeight="'auto'" :dPos="'top: 70px; right: 270px; background: var(--white);'"
       v-show="show_dialog['message']" @mouseleave="show_dialog['message'] = false">
       <template #body>
@@ -202,7 +148,8 @@
         </div>
       </template>
     </Dialog>
-    <!-- 动态 -->
+
+    <!-- 悬浮窗：动态 -->
     <Dialog :dWidth="'366px'" :dHeight="'auto'" :dPos="'top: 70px; right: 120px; background: var(--white);'"
       v-show="show_dialog['dynamics']" @mouseleave="show_dialog['dynamics'] = false">
       <template #body>
@@ -243,7 +190,8 @@
         </div>
       </template>
     </Dialog>
-    <!-- 收藏 -->
+
+    <!-- 悬浮窗：收藏 -->
     <div class="collect-dia-box" v-show="show_dialog['collect']" @mouseleave="show_dialog['collect'] = false">
       <div class="unlogin-dia" v-show="!userStore.token">
         <h2 class="unlogin-dia-title">登陆后即可查看</h2>
@@ -254,10 +202,8 @@
         <div class="folders">
           <div v-for="(item, index) in favorites_list" @click="onFavorTabClick(item.fid)" class="folders-item"
             v-show="index <= 9" :style="curFid == item.fid ? 'background-color:#00aeec;' : 'background-color:#fff;'">
-            <span class="name" :style="curFid == item.fid ? 'color:#fff;' : 'color:#18191c;'">{{ item.title
-              }}</span>
-            <span class="number" :style="curFid == item.fid ? 'color:#fff;' : 'color:#9499a0;'">{{ item.count
-              }}</span>
+            <span class="name" :style="curFid == item.fid ? 'color:#fff;' : 'color:#18191c;'">{{ item.title }}</span>
+            <span class="number" :style="curFid == item.fid ? 'color:#fff;' : 'color:#9499a0;'">{{ item.count }}</span>
           </div>
         </div>
         <div class="folder">
@@ -289,20 +235,21 @@
         </div>
       </div>
     </div>
-    <!-- 浏览历史 -->
+
+    <!-- 悬浮窗：浏览历史 -->
     <Dialog :dWidth="'370px'" :dHeight="'auto'" :dPos="'top: 70px; right: 80px; background: var(--white);'"
       v-show="show_dialog['browsingHistory']" @mouseleave="show_dialog['browsingHistory'] = false">
       <template #body>
         <HistoryDialog :can-get-history="show_dialog['browsingHistory']"></HistoryDialog>
       </template>
     </Dialog>
-    <!-- 个人 -->
+
+    <!-- 悬浮窗：个人 -->
     <Dialog :dWidth="'300px'" :dHeight="'auto'" :dPos="'top: 70px; right: 300px; background: var(--white);'"
       v-show="userData && show_dialog['user']" @mouseleave="show_dialog['user'] = false">
       <template #body>
         <div class="user-panel">
-          <a class="nick-name" @click="jumpToUserPage(`/user_page/${userStore.userInfo.uid}`)">{{ userData.nickname
-            }}</a>
+          <a class="nick-name" @click="jumpToUserPage(`/user_page/${userStore.userInfo.uid}`)">{{ userData.nickname }}</a>
           <a>uid: {{ userData.uid }}</a>
           <div class="account">
             <span>硬币：</span>
@@ -311,44 +258,18 @@
             <a>0</a>
           </div>
           <div class="socialize">
-            <div class="socialize-item">
-              <div @click="jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 0 })"
-                class="count">{{ formatCount(userStats.followCount) }}</div>
-              <div @click="jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 0 })"
-                class="socialize-type">关注</div>
-            </div>
-            <div class="socialize-item">
-              <div @click="jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 0 })"
-                class="count">{{ formatCount(userStats.fansCount) }}</div>
-              <div class="socialize-type"
-                @click="jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 1 })">粉丝</div>
-            </div>
-            <div class="socialize-item">
-              <div class="count">0</div>
-              <div class="socialize-type">动态</div>
+            <div class="socialize-item" v-for="social in socializeItems" :key="social.label">
+              <div @click="social.onClick" class="count">{{ social.count }}</div>
+              <div @click="social.onClick" class="socialize-type">{{ social.label }}</div>
             </div>
           </div>
-          <router-link :to="`/user_page/${userStore.userInfo.uid}`" target="_blank" class="details">
+          <router-link v-for="link in userPanelLinks" :key="link.label" :to="link.to" target="_blank" class="details">
             <div>
-              <i class="iconfont icon-yonghu"></i>&nbsp;
-              <span>个人中心</span>
+              <i :class="['iconfont', link.icon]"></i>&nbsp;
+              <span>{{ link.label }}</span>
             </div>
             <i class="iconfont icon-gengduo details-right-arrow"></i>
           </router-link>
-          <router-link to="/upload_manager" target="_blank" class="details">
-            <div>
-              <i class="iconfont icon-tougaoguanli"></i>&nbsp;
-              <span>投稿管理</span>
-            </div>
-            <i class="iconfont icon-gengduo details-right-arrow"></i>
-          </router-link>
-          <a href="" class="details">
-            <div>
-              <i class="iconfont icon-shoucang"></i>&nbsp;
-              <span>推荐服务</span>
-            </div>
-            <i class="iconfont icon-gengduo details-right-arrow"></i>
-          </a>
           <el-divider style="margin: 15px 0;" />
           <a class="details" @click="callLogout">
             <div>
@@ -361,6 +282,7 @@
       </template>
     </Dialog>
   </div>
+
   <div id="login-dialog" class="flex-row-ac jcc" v-show="login.dialog">
     <div class="bili-mini-content-wp flex-row jcc"
       :style="login.isInputPass ? `background-image:url(${lp}),url(${rp});` : `background-image:url(${lunp}),url(${runp});`">
@@ -375,8 +297,7 @@
       <div class="bili-mini-line"></div>
       <div class="bili-mini-login-right-wp flex-col-ac">
         <div class="login-tab-wp flex-row jcc">
-          <div :class="login.isReg ? 'login-tab-item unac' : 'login-tab-item ac'" @click="login.isReg = false">密码登录
-          </div>
+          <div :class="login.isReg ? 'login-tab-item unac' : 'login-tab-item ac'" @click="login.isReg = false">密码登录</div>
           <div class="login-tab-line"></div>
           <div :class="login.isReg ? 'login-tab-item ac' : 'login-tab-item unac'" @click="login.isReg = true">注册</div>
         </div>
@@ -428,12 +349,11 @@
   </div>
   <router-view></router-view>
 </template>
+
 <script setup lang="ts">
 import { ElMessage, ElNotification } from "element-plus";
-
-import { ref, onMounted, onBeforeUnmount, reactive, watch, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, reactive, watch, computed, nextTick } from "vue";
 import { useRouter, LocationQueryRaw, RouterLink } from 'vue-router';
-
 import Dialog from "./components/Dialog.vue";
 import lp from '@/assets/images/login_password_left.png';
 import rp from '@/assets/images/login_password_right.png';
@@ -443,11 +363,10 @@ import { useUserStore } from '@/util/userStore'
 import { validateAccount, validatePass, formatTimeGap, formatCount, removeOneElement } from "./util";
 import { LOGIN_URL } from "./util/config";
 import { DEFAULT_AVATAR } from "@/api/constants"
-
 import {
   partitonList, Partition, defaultUser, onLogin,
-  getUserInfoByUid, onRegister, getWhisperUnread, DefaultUserStats
-  , SearchHistory, HotSearch,
+  getUserInfoByUid, onRegister, getWhisperUnread, DefaultUserStats,
+  SearchHistory, HotSearch,
   getHotSearch,
   onLogout
 } from '@/api/app'
@@ -457,238 +376,240 @@ import { getUserStatsByUid } from '@/api/UserPage/index'
 import { Favorite, User, UserStats, VideoVo } from '@/api/Models';
 import NoData from "./components/NoData.vue";
 import HistoryDialog from "./components/App/HistoryDialog.vue";
-import { nextTick } from "vue";
+
 const userStore = useUserStore();
 const router = useRouter();
-//分区列表
-const partition_list = ref<Partition[]>(partitonList)
-const searchBox = ref<HTMLDivElement | null>(null)
 
-/**
- * @description: 登录&注册
- */
-//登录项
-const login = reactive({
-  account: "",
-  password: "",
-  username: "",
-  dialog: false,
-  isLogin: false,//是否已登录
-  isPassword: true,
-  isReg: false,
-  isInputPass: false
-})
-const loginPassInput = ref<HTMLInputElement | null>(null)
-const registerPassLogin = ref<HTMLInputElement | null>(null)
+// ==================== 计算属性 ====================
+const navBarColorClass = computed(() =>
+  is_main_window.value && scrollFlag.value ? 'navBar-b-color' : 'navBar-a-color'
+);
+const navIconColor = computed(() =>
+  is_main_window.value && scrollFlag.value ? 'var(--white)' : '#000'
+);
 
-const show_search_panel = ref(-1)
-const show_clear = ref(-1)
-const show_dialog = reactive({
-  firstPage: false,
-  message: false,
-  dynamics: false,
-  collect: false,
-  browsingHistory: false,
-  user: false,
-})
-//请求
-async function callLogin() {
-  if (!validateAccount(login.account)) {
-    ElMessage.error("账号不符合格式，必须是15位以内纯数字！")
-    return;
-  }
-  if (!validatePass(login.password)) {
-    ElMessage.error("密码不符合要求，必须是6~16位,且只能由字母、数字、“,.!/”组成！")
-    return;
-  }
-  try {
-    const res = await onLogin({ username: login.account, password: login.password })
-    if (res.code == 200) {
-      login.isLogin = true
-      userStore.setToken(res.data)
-      login.dialog = false
-      const userD = await getUserInfoByUid()
-      ElNotification({
-        title: '提示：',
-        message: `您的UID为：${userD.data.uid}，请记住该UID，它是您下次登录时需要输入的账号。`,
-        type: 'warning',
-        duration: 0
-      })
-      userStore.setUserInfo(userD.data)
-      userData.value = userStore.userInfo
-      onGetUnread()
-      onGetFavoriteList(userStore.userInfo.uid)
-      onGetUserStatsByUid({ uid: userStore.userInfo.uid })
-    } else {
-      console.log('fail-login-res: ', res)
-      ElMessage.error('登录失败！')
-    }
-  } catch (error) {
-    console.log(error)
-    ElMessage.error('登录失败！')
-  }
-}
-async function callLogout() {
-  onLogout();
-  nextTick(() => {
-    //调用登出函数后稍等片刻再清除本地toke，不然会因为未知原因错误调用refresh-token
-    login.isLogin = false
-    search_history.value = []
-    userStore.Logout()
-    router.replace(LOGIN_URL)
-  })
-}
-async function callRegister() {
-  if (!validatePass(login.password)) {
-    ElMessage.error("密码不符合要求，必须是6~16位,且只能由字母、数字、“,.!/”组成！")
-    return;
-  }
-  try {
-    const tPass = login.password;
-    const res = await onRegister({ nickname: login.username, password: login.password })
-    if (res.code == 200) {
-      login.account = res.data
-      login.password = tPass
-      callLogin()
-    }
-  } catch (error) {
-    ElMessage.error('注册失败！')
-  }
-}
-/**
- * @description: 搜索&搜索历史
- */
-//热搜列表
-const hotList = ref<HotSearch[]>([])
-//输入框绑定
-const placeHolder = ref("某知名UP主 1小时前更新")
-const search_input = ref<string>("")
-const show_item_clear = ref(-1)//当前显示删除图标的搜索历史标签
-//搜索历史flag
-const search_history = ref<SearchHistory[]>([])
-function onSeachFocus() {
-  show_search_panel.value = 1
-  if (userStore.token) {
-    search_history.value = userStore.sh;
-    search_history.value.sort((e1, e2) => {
-      return e2.cnt - e1.cnt
-    })
-  }
-}
-function onSearchHistoryClear() {
-  search_history.value = []
-  if (userStore.token) userStore.sh = [];
-}
-function onSearchClick() {
-  if (search_input.value.length == 0) return;
-  handleSearchHistory();
-  //页面跳转
-  jumpTo('/searchResult/all', true, true, { keyword: search_input.value })
-}
-function handleSearchHistory() {
-  //处理搜索历史
-  let flag = false;
-  search_history.value.some(e => {//先在目前的搜索历史列表里找有没有这个词
-    if (e.content === search_input.value) {
-      const now = new Date();
-      //找到的话将它的最近使用时间修改到当前
-      e.cnt = now.getTime();
-      flag = true;
-    }
-  })
-  if (!flag) {//没找到就插入新搜索历史
-    const now = new Date();
-    search_history.value.push({ id: now.getTime(), content: search_input.value, cnt: now.getTime() });
-  }
-  let res = search_history.value.sort((e1, e2) => {//将搜索历史按最近使用时间降序排序
-    return e2.cnt - e1.cnt
-  })
-  if (search_history.value.length > 20) search_history.value.pop();//如果总数大于20个则删除末尾
-  if (userStore.token) userStore.sh = res;//保存至浏览器缓存
-  search_history.value.push()
-}
-function onDelOneSH(e: SearchHistory) {
-  search_history.value = removeOneElement(search_history.value, (t: SearchHistory) => {
-    return t.id == e.id;
-  })
-  if (userStore.token) userStore.sh = search_history.value;
-}
-function onHistoryItemClick(e: SearchHistory) {
-  search_input.value = e.content;
-  const now = new Date();
-  e.cnt = now.getTime();
-  if (userStore.token) userStore.sh = search_history.value;
-  jumpTo('/searchResult/all', true, true, { keyword: search_input.value })
-}
-function onHotSearchClick(e: HotSearch) {
-  let url = `https://search.bilibili.com/all?keyword=${e.keyword}&from_source=webtop_search&spm_id_from=333.1007&search_source=4`
-  window.open(url, '_blank');
-}
-async function onGetHotSearch() {
-  try {
-    const res = await getHotSearch();
-    if (res.code == 200 && res.data != null) hotList.value = res.data;
-  } catch (error) {
-    console.log(error);
-  }
-}
-//动态列表
-const dynamics = ref({
-  LiveS_streaming: [{ id: 1, name: "某用户", src: "" }, { id: 1, name: "某用户", src: "" }, { id: 1, name: "某用户", src: "" }, { id: 1, name: "某用户", src: "" }, { id: 1, name: "某用户", src: "" }],
-  dynamics: [{ id: 1, name: "某用户", src: "", avatar: "", title: "敬请期待！", time: "36分钟前" }]
-})
-/**
- * @description: 未读消息
- */
-// 消息类型列表
-const unreadType = ([
+// 分区列（4列均匀分布）
+const partitionColumns = computed(() => {
+  const cols: Partition[][] = [[], [], [], []];
+  partition_list.value.forEach((item, idx) => cols[idx % 4].push(item));
+  return cols;
+});
+
+// 热搜左右两列
+const hotSearchColumns = computed(() => {
+  const left: HotSearch[] = [], right: HotSearch[] = [];
+  hotList.value.forEach((item, idx) => {
+    if (idx % 2 === 0 && idx <= 8) left.push(item);
+    else if (idx % 2 === 1 && idx <= 9) right.push(item);
+  });
+  return { left, right };
+});
+
+// ==================== 静态数据 ====================
+const navLeftItems = ['番剧', '直播', '游戏中心'];
+const navRightItems = [
+  { key: 'message', label: '消息', icon: 'Message', to: '/message_center' },
+  { key: 'dynamics', label: '动态', icon: 'Connection', onClick: () => ElMessage.warning('敬请期待！') },
+  { key: 'collect', label: '收藏', icon: 'Star', onClick: () => jumpToUserPage(`/user_page/${userStore.userInfo.uid}/favList`) },
+  { key: 'browsingHistory', label: '历史', icon: 'Clock', onClick: () => jumpToUserPage(`/browseHistory`) },
+];
+const unreadType = [
   { id: 1, name: "回复我的", link: "", key: 'reply' },
   { id: 2, name: "@我的", link: "", key: 'at' },
   { id: 3, name: "收到的赞", link: "", key: 'love' },
   { id: 4, name: "系统消息", link: "MC_system", key: 'system' },
   { id: 5, name: "我的消息", link: "MC_whisper", key: 'whisperUnread' },
-])
+];
+
+// ==================== 状态变量 ====================
+const partition_list = ref<Partition[]>(partitonList);
+const searchBox = ref<HTMLDivElement | null>(null);
+const loginPassInput = ref<HTMLInputElement | null>(null);
+const registerPassLogin = ref<HTMLInputElement | null>(null);
+const show_search_panel = ref(-1);
+const show_clear = ref(-1);
+const show_item_clear = ref(-1);
+const search_input = ref<string>("");
+const placeHolder = ref("某知名UP主 1小时前更新");
+const search_history = ref<SearchHistory[]>([]);
+const hotList = ref<HotSearch[]>([]);
+const is_main_window = ref(false);
+const scrollFlag = ref(true);
+const curFid = ref<number>(0);
+const favorites_list = ref<Favorite[]>([]);
+const favoriteTable = ref<Map<number, VideoVo[]>>(new Map());
+const userData = ref<User>(defaultUser);
+const userStats = ref<UserStats>(DefaultUserStats);
+const dynamics = ref({
+  LiveS_streaming: [
+    { id: 1, name: "某用户", src: "" }, { id: 2, name: "某用户", src: "" },
+    { id: 3, name: "某用户", src: "" }, { id: 4, name: "某用户", src: "" },
+    { id: 5, name: "某用户", src: "" }
+  ],
+  dynamics: [{ id: 1, name: "某用户", src: "", avatar: "", title: "敬请期待！", time: "36分钟前" }]
+});
+
+const login = reactive({
+  account: "", password: "", username: "",
+  dialog: false, isLogin: false, isPassword: true, isReg: false, isInputPass: false
+});
+
+const show_dialog = reactive({
+  firstPage: false, message: false, dynamics: false,
+  collect: false, browsingHistory: false, user: false,
+});
+
 const unread = reactive({
-  whisperUnread: 0,
-  system: 0,
-  love: 0,
-  at: 0,
-  reply: 0,
-})
-function onGetUnread() {
-  if (!userStore.token) {
-    ElMessage.error('未登录！')
-    return;
+  whisperUnread: 0, system: 0, love: 0, at: 0, reply: 0,
+});
+
+// 用户面板链接（socialize + 链接列表）
+const socializeItems = computed(() => [
+  { label: '关注', count: formatCount(userStats.value.followCount), onClick: () => jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 0 }) },
+  { label: '粉丝', count: formatCount(userStats.value.fansCount), onClick: () => jumpTo(`/user_page/${userStore.userInfo.uid}/fansList`, true, true, { mode: 1 }) },
+  { label: '动态', count: '0', onClick: undefined },
+]);
+const userPanelLinks = [
+  { label: '个人中心', icon: 'icon-yonghu', to: `/user_page/${userStore.userInfo.uid}` },
+  { label: '投稿管理', icon: 'icon-tougaoguanli', to: '/upload_manager' },
+  { label: '推荐服务', icon: 'icon-shoucang', to: '' },
+];
+
+// ==================== 搜索相关 ====================
+function onSeachFocus() {
+  show_search_panel.value = 1;
+  if (userStore.token) {
+    search_history.value = userStore.sh;
+    search_history.value.sort((e1, e2) => e2.cnt - e1.cnt);
   }
-  onGetWhisperUnread()
+}
+function clearSearchInput() {
+  search_input.value = "";
+  show_clear.value = -1;
+}
+function doSearch() {
+  if (search_input.value.length == 0) return;
+  handleSearchHistory();
+  jumpTo('/searchResult/all', true, true, { keyword: search_input.value });
+}
+function onSearchClick() { doSearch(); }
+function onSearchInputStop(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    (event.target as HTMLInputElement).blur();
+    doSearch();
+  }
+}
+function handleSearchHistory() {
+  const now = new Date().getTime();
+  const existing = search_history.value.find(e => e.content === search_input.value);
+  if (existing) {
+    existing.cnt = now;
+  } else {
+    search_history.value.push({ id: now, content: search_input.value, cnt: now });
+  }
+  search_history.value.sort((e1, e2) => e2.cnt - e1.cnt);
+  if (search_history.value.length > 20) search_history.value.pop();
+  if (userStore.token) userStore.sh = search_history.value;
+}
+function onSearchHistoryClear() {
+  search_history.value = [];
+  if (userStore.token) userStore.sh = [];
+}
+function onDelOneSH(e: SearchHistory) {
+  search_history.value = removeOneElement(search_history.value, (t: SearchHistory) => t.id == e.id);
+  if (userStore.token) userStore.sh = search_history.value;
+}
+function onHistoryItemClick(e: SearchHistory) {
+  search_input.value = e.content;
+  e.cnt = new Date().getTime();
+  if (userStore.token) userStore.sh = search_history.value;
+  jumpTo('/searchResult/all', true, true, { keyword: search_input.value });
+}
+function onHotSearchClick(e: HotSearch) {
+  window.open(`https://search.bilibili.com/all?keyword=${e.keyword}&from_source=webtop_search&spm_id_from=333.1007&search_source=4`, '_blank');
+}
+async function onGetHotSearch() {
+  try {
+    const res = await getHotSearch();
+    if (res.code == 200 && res.data != null) hotList.value = res.data;
+  } catch (error) { console.log(error); }
+}
+
+// ==================== 登录&注册 ====================
+async function callLogin() {
+  if (!validateAccount(login.account)) { ElMessage.error("账号不符合格式，必须是15位以内纯数字！"); return; }
+  if (!validatePass(login.password)) { ElMessage.error("密码不符合要求，必须是6~16位,且只能由字母、数字、“,.!/”组成！"); return; }
+  try {
+    const res = await onLogin({ username: login.account, password: login.password });
+    if (res.code == 200) {
+      login.isLogin = true;
+      userStore.setToken(res.data);
+      login.dialog = false;
+      const userD = await getUserInfoByUid();
+      ElNotification({ title: '提示：', message: `您的UID为：${userD.data.uid}，请记住该UID，它是您下次登录时需要输入的账号。`, type: 'warning', duration: 0 });
+      userStore.setUserInfo(userD.data);
+      userData.value = userStore.userInfo;
+      onGetUnread();
+      onGetFavoriteList(userStore.userInfo.uid);
+      onGetUserStatsByUid({ uid: userStore.userInfo.uid });
+    } else {
+      console.log('fail-login-res: ', res);
+      ElMessage.error('登录失败！');
+    }
+  } catch (error) { console.log(error); ElMessage.error('登录失败！'); }
+}
+async function callLogout() {
+  onLogout();
+  nextTick(() => {
+    login.isLogin = false;
+    search_history.value = [];
+    userStore.Logout();
+    router.replace(LOGIN_URL);
+  });
+}
+async function callRegister() {
+  if (!validatePass(login.password)) { ElMessage.error("密码不符合要求，必须是6~16位,且只能由字母、数字、“,.!/”组成！"); return; }
+  try {
+    const tPass = login.password;
+    const res = await onRegister({ nickname: login.username, password: login.password });
+    if (res.code == 200) {
+      login.account = res.data;
+      login.password = tPass;
+      callLogin();
+    }
+  } catch (error) { ElMessage.error('注册失败！'); }
+}
+function onLoginBtnClick(showLoginPanel: boolean, showReg: boolean) {
+  login.dialog = showLoginPanel;
+  login.isReg = showReg;
+  login.account = "";
+  login.password = "";
+  login.username = "";
+}
+
+// ==================== 未读消息 ====================
+function onGetUnread() {
+  if (!userStore.token) { ElMessage.error('未登录！'); return; }
+  onGetWhisperUnread();
 }
 async function onGetWhisperUnread() {
   try {
-    const res = await getWhisperUnread({ uid: userStore.userInfo.uid })
+    const res = await getWhisperUnread({ uid: userStore.userInfo.uid });
     unread.whisperUnread = res.data;
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) { console.log(error); }
 }
-/**
- * @description: 收藏管理功能区
- */
-const curFid = ref<number>(0)//当前选中收藏夹
-//收藏夹列表
-const favorites_list = ref<Favorite[]>([])
-//value为null表示未初始化数据，可能需要发请求获取
-//value为[{ fid: 0, uid: 0, type: 0, visible: 0, cover: 0, title: 0, description: 0, count: 0, is_delete: 0 }]表示空列表
-let favoriteTable = ref<Map<number, VideoVo[]>>(new Map());//收藏夹与收藏夹内视频列表映射
+
+// ==================== 收藏管理 ====================
 function initFavorList() {
   if (favorites_list.value.length == 0) return;
-  favorites_list.value.forEach((e) => {
+  favorites_list.value.forEach(e => {
     if (!favoriteTable.value) favoriteTable.value = new Map();
     favoriteTable.value.set(e.fid, null);
-  })
-  onGetVideoInFavor(favorites_list.value[0].fid, true)
+  });
+  onGetVideoInFavor(favorites_list.value[0].fid, true);
 }
 function onFavorTabClick(fid: number) {
-  if (favoriteTable.value.has(fid) && favoriteTable.value[fid] == null) {//未获取数据
+  if (favoriteTable.value.has(fid) && favoriteTable.value[fid] == null) {
     onGetVideoInFavor(fid, true);
   } else {
     curFid.value = fid;
@@ -696,149 +617,86 @@ function onFavorTabClick(fid: number) {
 }
 function onCollectVideoClick(e: VideoVo) {
   if (e.vid == 0) return;
-  jumpTo(`/video/${e.vid}`, true, false, null)
+  jumpTo(`/video/${e.vid}`, true, false, null);
 }
 async function onGetVideoInFavor(fid: number, isInit: boolean) {
   try {
-    const { data } = await getVideoInfavor(fid)
+    const { data } = await getVideoInfavor(fid);
     if (data.length > 0) favoriteTable.value[fid] = data;
-    else {
-      //用这个数据区分未获取数据和空列表
-      favoriteTable.value[fid] = [{ uid: 0, nickname: 'string', title: 'string', duration: 1, coverUrl: 'string', uploadDate: 'string', vid: 0, play: 0, danmu: 0, good: 0, coin: 0 }]
-    }
+    else favoriteTable.value[fid] = [{ uid: 0, nickname: 'string', title: 'string', duration: 1, coverUrl: 'string', uploadDate: 'string', vid: 0, play: 0, danmu: 0, good: 0, coin: 0 }];
     if (isInit) curFid.value = fid;
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) { console.log(error); }
 }
 async function onGetFavoriteList(uid: number) {
   try {
-    const { data } = await getFavoriteList({ uid: uid, current: 1, size: 100 })
+    const { data } = await getFavoriteList({ uid, current: 1, size: 100 });
     favorites_list.value = data.records;
     initFavorList();
-  } catch (error) {
-    console.log(error)
-  }
+  } catch (error) { console.log(error); }
 }
-/**
- * @description: 用户管理
- */
-const userData = ref<User>(defaultUser)
-const userStats = ref<UserStats>(DefaultUserStats)
+
+// ==================== 用户统计 ====================
 async function onGetUserStatsByUid(query: UserStatsQueryVo) {
   try {
-    const res = await getUserStatsByUid(query)
-    userStats.value = res.data
-  } catch (error) {
-    console.log(error)
-  }
+    const res = await getUserStatsByUid(query);
+    userStats.value = res.data;
+  } catch (error) { console.log(error); }
 }
 
-const handleOutSearchbox = (event: MouseEvent) => {
-  if (searchBox.value && !searchBox.value.contains(event.target as Node)) {
-    show_search_panel.value = -1
-  }
-}
-function onLoginBtnClick(showLoginPanel: boolean, showReg: boolean) {
-  login.dialog = showLoginPanel
-  login.isReg = showReg
-  login.account = ""
-  login.password = ""
-  login.username = ""
-}
-function jumpToUserPage(path: string) {
-  if (userStore.token) {
-    jumpTo(path, true, true, { uid: userStore.userInfo.uid, source: 1 })
-  }
-}
-function onSearchInputStop(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    (event.target as HTMLInputElement).blur();
-    handleSearchHistory();
-    jumpTo('/searchResult/all', true, true, { keyword: search_input.value })
-  }
-}
-//页面跳转
-function jumpTo(href: string, isBlank: boolean, isQuery: boolean, query: LocationQueryRaw) {
-  const url = router.resolve({
-    path: href,
-    query: isQuery ? query : null
-  });
-  if (isBlank) {
-    window.open(url.href, "_blank");
-  } else {
-    window.open(url.href);
-  }
-}
-function clearSearchInput() {
-  search_input.value = "";
+// ==================== 工具函数 ====================
+function switchDialog(selected: string) {
+  show_item_clear.value = -1;
+  show_search_panel.value = -1;
   show_clear.value = -1;
-}
-//头像加载失败
-function errorHandler() {
-  return true;
-}
-function resetFlag() {
   if (favorites_list.value.length > 0) curFid.value = favorites_list.value[0].fid;
   else curFid.value = 0;
-  show_item_clear.value = -1
-  show_search_panel.value = -1
-  show_clear.value = -1
-}
-function switchDialog(selected: string) {
-  resetFlag();
-  //打开其中一个悬浮窗前，关闭其他所有悬浮窗
   for (let key in show_dialog) {
-    if (key !== selected) {
-      show_dialog[key] = false;
-    } else {
-      show_dialog[key] = true;
-    }
+    show_dialog[key] = key === selected;
   }
 }
-
-const is_main_window = ref(false)
-const scrollFlag = ref(true)
+function jumpToUserPage(path: string) {
+  if (userStore.token) jumpTo(path, true, true, { uid: userStore.userInfo.uid, source: 1 });
+}
+function jumpTo(href: string, isBlank: boolean, isQuery: boolean, query: LocationQueryRaw) {
+  const url = router.resolve({ path: href, query: isQuery ? query : null });
+  if (isBlank) window.open(url.href, "_blank");
+  else window.open(url.href);
+}
+const handleOutSearchbox = (event: MouseEvent) => {
+  if (searchBox.value && !searchBox.value.contains(event.target as Node)) show_search_panel.value = -1;
+};
 function onBodyScroll(e: any) {
-  let scrollTop = e.target.scrollingElement.scrollTop;
-  if (is_main_window && scrollFlag && scrollTop >= 100) {
-    scrollFlag.value = false
-  } else if (is_main_window && scrollFlag && scrollTop < 100) {
-    scrollFlag.value = true
-  }
+  const scrollTop = e.target.scrollingElement.scrollTop;
+  if (is_main_window && scrollFlag && scrollTop >= 100) scrollFlag.value = false;
+  else if (is_main_window && scrollFlag && scrollTop < 100) scrollFlag.value = true;
 }
+function errorHandler() { return true; }
+
+// ==================== 生命周期 ====================
 onMounted(() => {
   document.addEventListener('click', handleOutSearchbox);
   window.addEventListener("scroll", onBodyScroll);
-  favoriteTable.value.set(0, [])
+  favoriteTable.value.set(0, []);
   if (!userStore.token) {
-    login.isLogin = false
+    login.isLogin = false;
   } else {
-    login.isLogin = true
-    userData.value = userStore.userInfo
-    search_history.value = userStore.sh
-    onGetUnread()
+    login.isLogin = true;
+    userData.value = userStore.userInfo;
+    search_history.value = userStore.sh;
+    onGetUnread();
     onGetFavoriteList(userStore.userInfo.uid);
-    onGetUserStatsByUid({ uid: userStore.userInfo.uid })
-    onGetHotSearch()
+    onGetUserStatsByUid({ uid: userStore.userInfo.uid });
+    onGetHotSearch();
   }
-})
+});
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", onBodyScroll);
   window.removeEventListener('click', handleOutSearchbox);
-})
+});
 watch(() => router.currentRoute.value.path, (toPath) => {
-  window.scrollTo({
-    top: 0,
-  });
-  if (toPath == "/main_window") {
-    is_main_window.value = true;
-  }
-  else {
-    is_main_window.value = false;
-  }
-}, { immediate: true, deep: true }
-)
+  window.scrollTo({ top: 0 });
+  is_main_window.value = toPath == "/main_window";
+}, { immediate: true, deep: true });
 </script>
 
 <style scoped lang="less">
@@ -847,7 +705,6 @@ watch(() => router.currentRoute.value.path, (toPath) => {
 .not-password {
   background-image: url(./assets/images/login_left_image.png), url(./assets/images/login_right_image.png);
 }
-
 .password {
   background-image: url(./assets/images/login_left_image.png), url(./assets/images/login_right_image.png);
 }

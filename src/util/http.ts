@@ -87,22 +87,6 @@ service.interceptors.request.use(
  */
 service.interceptors.response.use(
   async (response: AxiosResponse) => {
-
-    const setCookie = response.headers['set-cookie']
-
-    if (setCookie) {
-      console.log('📥 响应 Set-Cookie:', setCookie)
-
-      // 解析 Set-Cookie 内容
-      setCookie.forEach(cookie => {
-        console.log('设置的Cookie:', cookie.split(';')[0])
-      })
-    } else {
-      console.log('📥 响应中没有 Set-Cookie')
-    }
-
-    console.log('📥 当前所有 Cookie:', document.cookie)
-
     const { data } = response
     const r = response.headers['refresh-token'];
     if (r != null && r != '') {
