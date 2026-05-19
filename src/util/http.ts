@@ -84,6 +84,7 @@ service.interceptors.request.use(
  * @description: 响应拦截器
  * @returns {*}
  * TODO: 通过header获取refresh-token并放入cookie，这是权宜之举
+ * TODO: 点击播放视频时会莫名其妙调用刷新token的接口，不合逻辑。现在因为论文没提到，并且没时间细究，暂时注释掉
  */
 service.interceptors.response.use(
   async (response: AxiosResponse) => {
@@ -94,9 +95,9 @@ service.interceptors.response.use(
       userStore.setRefreshToken(r);
       CookieUtil.set('refresh-token', r);
     }
-    if (ResultEnum.EXPIRE.includes(data.code)) {
-      return doRefreshToken(data)
-    }
+    // if (ResultEnum.EXPIRE.includes(data.code)) {
+    //   return doRefreshToken(data)
+    // }
     if (data.code && data.code !== ResultEnum.SUCCESS) {
       ElMessage.error(data.message || ResultEnum.ERRMESSAGE)
       return Promise.reject(data)
@@ -107,7 +108,7 @@ service.interceptors.response.use(
     // HTTP 状态码
     const status = error.response?.status
     if (status == 305 || status == 601 || status == 602) {
-      doRefreshToken(error);
+      // doRefreshToken(error);
       return Promise.reject(error);
     }
     return Promise.reject(error)

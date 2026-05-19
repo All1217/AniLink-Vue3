@@ -620,6 +620,7 @@ async function onUnfollow() {
     ElMessage.error('操作失败！')
   }
 }
+
 onMounted(() => {
   document.addEventListener('click', outNewFavorite)
   window.addEventListener("scroll", handleBodyScroll)
